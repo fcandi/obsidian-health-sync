@@ -268,9 +268,9 @@ export class GarminApi {
 								window.__hs_responses.activities = data;
 							if (url.includes("weight-service/weight"))
 								window.__hs_responses.weight = data;
-							if (url.includes("spo2-service"))
+							if (url.includes("spo2-service") || url.includes("daily/spo2"))
 								window.__hs_responses.spo2 = data;
-							if (url.includes("respiration") && url.includes("allDay"))
+							if (url.includes("respiration"))
 								window.__hs_responses.respiration = data;
 							if (url.includes("maxmet"))
 								window.__hs_responses.trainingStatus = data;
@@ -496,9 +496,8 @@ export class GarminApi {
 		return Array.isArray(acts) ? acts as Record<string, unknown>[] : [];
 	}
 
-	async fetchTrainingStatus(): Promise<Record<string, unknown>> {
-		const today = new Date().toISOString().slice(0, 10);
-		const data = await this.getCachedOrFetch(today);
+	async fetchTrainingStatus(date: string): Promise<Record<string, unknown>> {
+		const data = await this.getCachedOrFetch(date);
 		return (data.trainingStatus || {}) as Record<string, unknown>;
 	}
 

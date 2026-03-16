@@ -1,90 +1,136 @@
-# Obsidian Sample Plugin
+**English** · [Deutsch](README.de.md) · [中文](README.zh.md) · [日本語](README.ja.md) · [Español](README.es.md) · [Français](README.fr.md)
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+# Obsidian Health Sync
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+Automatically sync steps, sleep, heart rate, stress, activities and more from your fitness tracker into Obsidian Daily Notes — as frontmatter properties you can query with Dataview.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+> **Desktop only.** This plugin uses Electron's BrowserWindow for authentication and does not work on mobile.
 
-## First time developing plugins?
+## Supported Providers
 
-Quick starting guide for new plugin devs:
+- **Garmin Connect** — log in with your normal Garmin credentials, no API key needed
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+More providers (Fitbit, Oura, Whoop) are planned.
 
-## Releasing new releases
+## Features
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+- **Auto-sync on startup** — checks the last 7 days and fills in any missing health data
+- **Manual sync** — sync any open Daily Note via command palette
+- **Backfill** — bulk-sync a date range (e.g. the last 3 months)
+- **20+ metrics** — steps, sleep score, HRV, stress, body battery, SpO2, weight, and more
+- **Activity tracking** — each workout appears as a human-readable summary
+- **Workout location** — reverse-geocoded place name from your first GPS activity
+- **Smart detection** — automatically picks up your Daily Notes path and format from Periodic Notes or the core Daily Notes plugin
+- **Subdirectory support** — finds existing Daily Notes in nested folders (e.g. `Journal/2024-07/`)
+- **Language auto-detection** — UI language is set from your Obsidian language (EN, DE, ZH, JA, ES, FR)
+- **Optional structured data** — machine-readable `trainings` field for advanced Dataview queries
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+## Frontmatter Output
 
-## Adding your plugin to the community plugin list
+### Metrics
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
-
-## How to use
-
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
-
-## Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+```yaml
+---
+steps: 15185
+resting_hr: 69
+sleep_score: 81
+sleep_duration: 7h 43min
+hrv: 39
+stress: 30
+workout_location: Bad Honnef, Deutschland
+---
 ```
 
-If you have multiple URLs, you can also do:
+### Activities
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+Each workout is written as a frontmatter key with a summary string:
+
+```yaml
+---
+hiking: 8.2 km · 157min · Ø105 bpm · 696 kcal
+e_bike: 22.1 km · 65min · Ø112 bpm · 420 kcal
+---
 ```
 
-## API Documentation
+Only days with actual workouts get activity keys. The plugin never touches your note content — it only adds or updates frontmatter properties.
 
-See https://docs.obsidian.md
+### Trainings (optional, machine-readable)
+
+Enable "Machine-readable trainings" in settings to add a structured `trainings` field for Dataview queries:
+
+```yaml
+---
+trainings:
+  - type: hiking
+    category: outdoor
+    distance_km: 8.2
+    duration_min: 157
+    avg_hr: 105
+    calories: 696
+  - type: e_bike
+    category: cycling
+    distance_km: 22.1
+    duration_min: 65
+    avg_hr: 112
+    calories: 420
+---
+```
+
+## Installation
+
+### From Community Plugins (recommended)
+
+1. Open Obsidian Settings → Community Plugins → Browse
+2. Search for "Health Sync"
+3. Install and enable the plugin
+4. Log in to Garmin Connect in the plugin settings
+
+### Manual
+
+1. Download `main.js` and `manifest.json` from the [latest release](https://github.com/fcandi/obsidian-health-sync/releases)
+2. Create a folder `.obsidian/plugins/obsidian-health-sync/` in your vault
+3. Copy both files into that folder
+4. Enable the plugin in Settings → Community Plugins
+
+## Activity Key Normalization
+
+Provider-specific activity names are normalized to canonical keys. Garmin's `typeKey` values serve as the base standard, with a small cleanup for overly verbose keys:
+
+| Provider Key | Canonical Key | Category |
+|---|---|---|
+| `e_bike_fitness` | `e_bike` | cycling |
+| `e_bike_mountain` | `e_mtb` | cycling |
+| `resort_skiing_snowboarding` | `skiing` | winter |
+| `backcountry_skiing_snowboarding` | `backcountry_skiing` | winter |
+| `stand_up_paddleboarding` | `sup` | water |
+| `fitness_equipment` | `gym_equipment` | gym |
+
+All other Garmin keys pass through unchanged (e.g. `hiking`, `running`, `cycling`, `swimming`, `strength_training`, `yoga`, ...).
+
+### Activity Categories
+
+Each activity is assigned a category for cross-provider compatibility:
+
+| Category | Examples |
+|---|---|
+| `cycling` | cycling, e_bike, e_mtb, mountain_biking, indoor_cycling, road_biking |
+| `running` | running, trail_running, treadmill, ultra_run |
+| `walking` | walking, indoor_walking |
+| `outdoor` | hiking, mountaineering, rock_climbing, bouldering |
+| `swimming` | swimming, pool_swimming, open_water_swimming |
+| `winter` | skiing, backcountry_skiing, cross_country_skiing, snowboarding |
+| `water` | sup, rowing, kayaking, surfing, sailing |
+| `gym` | strength_training, gym_equipment, elliptical, yoga, pilates, hiit |
+| `racket` | tennis, badminton, squash, table_tennis, pickleball |
+| `team` | soccer, basketball, volleyball, rugby |
+| `other` | golf, meditation, multi_sport |
+
+Future providers (Fitbit, Oura, etc.) will map their activity names onto these same canonical keys.
+
+## Development
+
+```bash
+npm install
+npm run dev    # watch mode
+npm run build  # production build
+```

@@ -56,7 +56,7 @@ export class GarminProvider implements HealthProvider {
 		// Nur benoetigte Endpoints aufrufen
 		const requiredEndpoints = getRequiredEndpoints(enabledMetrics);
 		this.api.setRequiredEndpoints(requiredEndpoints);
-		console.log("Health Sync: Endpoints:", requiredEndpoints.join(", "), `(${requiredEndpoints.length}/${Object.keys(enabledMetrics).length} metrics)`);
+		console.log("Health Sync: Endpoints:", requiredEndpoints.join(", "), `(${requiredEndpoints.length}/${enabledMetrics.length} metrics)`);
 		const metrics: Record<string, number | string> = {};
 
 		const requests: Promise<void>[] = [];
@@ -153,7 +153,7 @@ export class GarminProvider implements HealthProvider {
 		// Training Status
 		if (enabled.has("training_status")) {
 			requests.push(
-				this.api.fetchTrainingStatus()
+				this.api.fetchTrainingStatus(date)
 					.then(data => merge("trainingStatus", mapTrainingStatus(data, enabled)))
 					.catch(e => console.warn("Health Sync: Training Status fetch failed", e))
 			);
@@ -161,14 +161,21 @@ export class GarminProvider implements HealthProvider {
 
 		// Activities
 		let activities: Record<string, string> = {};
+		let trainings: import("../provider").TrainingEntry[] = [];
+		let startLocation: { lat: number; lon: number } | undefined;
 		requests.push(
 			this.api.fetchActivities(date)
-				.then(data => { activities = mapActivities(data); })
+				.then(data => {
+					const result = mapActivities(data);
+					activities = result.display;
+					trainings = result.trainings;
+					if (result.startLocation) startLocation = result.startLocation;
+				})
 				.catch(e => console.warn("Health Sync: Activities fetch failed", e))
 		);
 
 		await Promise.all(requests);
 
-		return { metrics, activities };
+		return { metrics, activities, trainings, startLocation };
 	}
 }

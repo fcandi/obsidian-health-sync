@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-health-sync",
-	"version": "0.1.0",
+	"version": "0.9.0",
 	"description": "Sync health data from smartwatches into Obsidian Daily Notes",
 	"main": "main.js",
 	"type": "module",

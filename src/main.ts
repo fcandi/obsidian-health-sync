@@ -10,6 +10,7 @@ export default class HealthSyncPlugin extends Plugin {
 	settings: HealthSyncSettings;
 	private syncManager: SyncManager;
 	private garminProvider: GarminProvider;
+	private autoSyncRunning = false;
 
 	async onload() {
 		await this.loadSettings();
@@ -78,8 +79,25 @@ export default class HealthSyncPlugin extends Plugin {
 	private async tryAutoSync(): Promise<void> {
 		if (!this.settings.autoSync) return;
 		if (this.settings.autoSyncPaused) return;
+		if (this.autoSyncRunning) return;
 		const today = this.todayString();
 		if (this.settings.lastSyncDate === today) return; // Heute schon gelaufen
+		if (!this.garminProvider.isSessionValid()) {
+			this.settings.autoSyncPaused = true;
+			await this.saveSettings();
+			new Notice(t("noticeSessionExpired", this.settings.language));
+			return;
+		}
+
+		this.autoSyncRunning = true;
+		try {
+			await this.runAutoSync(today);
+		} finally {
+			this.autoSyncRunning = false;
+		}
+	}
+
+	private async runAutoSync(today: string): Promise<void> {
 		if (!this.garminProvider.isSessionValid()) return;
 
 		const enabledMetrics = Object.entries(this.settings.enabledMetrics)
@@ -238,12 +256,20 @@ export default class HealthSyncPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<HealthSyncSettings>);
+		const saved = await this.loadData() as Partial<HealthSyncSettings> | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
 		const defaults = DEFAULT_SETTINGS.enabledMetrics;
 		for (const key of Object.keys(defaults)) {
 			if (this.settings.enabledMetrics[key] === undefined) {
 				this.settings.enabledMetrics[key] = defaults[key]!;
 			}
+		}
+
+		// Sprache beim ersten Start aus Obsidian uebernehmen
+		if (!saved?.language) {
+			const obsidianLang = document.documentElement.lang?.slice(0, 2) ?? "en";
+			const supported = ["en", "de", "zh", "ja", "es", "fr"];
+			this.settings.language = supported.includes(obsidianLang) ? obsidianLang : "en";
 		}
 	}
 
@@ -283,17 +309,22 @@ export default class HealthSyncPlugin extends Plugin {
 		const format = this.settings.dailyNoteFormat || "YYYY-MM-DD";
 		const path = this.settings.dailyNotePath || "";
 
-		// Erwarteten Pfad-Prefix pruefen
+		// Erwarteten Pfad-Prefix pruefen (auch Unterverzeichnisse erlauben)
 		const dir = file.path.substring(0, file.path.lastIndexOf("/"));
-		if (path && dir !== path) return null;
+		if (path && dir !== path && !dir.startsWith(path + "/")) return null;
 		if (!path && dir !== "") return null;
 
 		// Dateiname gegen Format matchen (YYYY-MM-DD → Regex)
-		const pattern = format
-			.replace("YYYY", "(?<year>\\d{4})")
-			.replace("MM", "(?<month>\\d{2})")
-			.replace("DD", "(?<day>\\d{2})");
-		const match = file.basename.match(new RegExp(`^${pattern}$`));
+		// Zuerst Platzhalter temporaer ersetzen, dann Sonderzeichen escapen, dann Gruppen einsetzen
+		const escaped = format
+			.replace("YYYY", "\x01")
+			.replace("MM", "\x02")
+			.replace("DD", "\x03")
+			.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+			.replace("\x01", "(?<year>\\d{4})")
+			.replace("\x02", "(?<month>\\d{2})")
+			.replace("\x03", "(?<day>\\d{2})");
+		const match = file.basename.match(new RegExp(`^${escaped}$`));
 		if (!match?.groups) return null;
 
 		return `${match.groups.year}-${match.groups.month}-${match.groups.day}`;

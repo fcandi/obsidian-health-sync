@@ -16,6 +16,8 @@ export interface HealthSyncSettings {
 	language: string;
 	autoSync: boolean;
 	autoSyncPaused: boolean; // Bei Auth-Fehler automatisch pausiert
+	writeTrainings: boolean; // Maschinenlesbare Trainings-Daten im Frontmatter
+	writeWorkoutLocation: boolean; // Reverse-Geocoded Workout-Ort im Frontmatter
 }
 
 export const DEFAULT_SETTINGS: HealthSyncSettings = {
@@ -30,6 +32,8 @@ export const DEFAULT_SETTINGS: HealthSyncSettings = {
 	language: "en",
 	autoSync: true,
 	autoSyncPaused: false,
+	writeTrainings: false,
+	writeWorkoutLocation: true,
 };
 
 export class HealthSyncSettingTab extends PluginSettingTab {
@@ -153,6 +157,28 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
+		// Workout Location
+		new Setting(containerEl)
+			.setName(t("settingsWriteWorkoutLocation", lang))
+			.setDesc(t("settingsWriteWorkoutLocationDesc", lang))
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.writeWorkoutLocation)
+				.onChange(async (value) => {
+					this.plugin.settings.writeWorkoutLocation = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Maschinenlesbare Trainings
+		new Setting(containerEl)
+			.setName(t("settingsWriteTrainings", lang))
+			.setDesc(t("settingsWriteTrainingsDesc", lang))
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.writeTrainings)
+				.onChange(async (value) => {
+					this.plugin.settings.writeTrainings = value;
+					await this.plugin.saveSettings();
+				}));
+
 		// Standard Metriken
 		containerEl.createEl("h3", { text: t("settingsMetricsStandard", lang) });
 		for (const metric of METRICS.filter(m => m.category === "standard")) {
@@ -182,5 +208,6 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}));
 		}
+
 	}
 }

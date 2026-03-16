@@ -1,3 +1,6 @@
+import { normalizeActivityKey, getActivityCategory } from "../../activity-keys";
+import type { TrainingEntry } from "../provider";
+
 /** Konvertiert Sekunden in "Xh Ymin" Format */
 export function secondsToHoursMin(seconds: number | null | undefined): string | null {
 	if (seconds == null || seconds <= 0) return null;
@@ -196,13 +199,25 @@ export function mapTrainingStatus(data: Record<string, unknown>, enabled: Set<st
 	return result;
 }
 
+/** Ergebnis von mapActivities: human-readable + strukturiert */
+export interface ActivityResult {
+	/** Human-readable Key-Value Paare (z.B. hiking: "8.2 km · 157min") */
+	display: Record<string, string>;
+	/** Strukturierte Trainingsdaten fuer maschinenlesbare Ausgabe */
+	trainings: TrainingEntry[];
+	/** Startkoordinaten der ersten Activity mit GPS (fuer Reverse Geocoding) */
+	startLocation: { lat: number; lon: number } | null;
+}
+
 /** Mappt Garmin Activities auf normalisierte Trainings-Strings */
-export function mapActivities(activities: Record<string, unknown>[]): Record<string, string> {
+export function mapActivities(activities: Record<string, unknown>[]): ActivityResult {
 	const grouped: Record<string, { count: number; distanceKm: number; durationMin: number; avgHr: number; hrCount: number; calories: number }> = {};
+	let startLocation: { lat: number; lon: number } | null = null;
 
 	for (const act of activities) {
-		// typeKey von der API ist autoritativ — Garmin aendert typeIds gelegentlich
-		const typeName = String(get(act, "activityType.typeKey") ?? "workout").toLowerCase().replace(/\s+/g, "_");
+		// typeKey von der API normalisieren (e_bike_fitness → e_bike, etc.)
+		const rawKey = String(get(act, "activityType.typeKey") ?? "workout");
+		const typeName = normalizeActivityKey(rawKey);
 
 		if (!grouped[typeName]) {
 			grouped[typeName] = { count: 0, distanceKm: 0, durationMin: 0, avgHr: 0, hrCount: 0, calories: 0 };
@@ -210,7 +225,7 @@ export function mapActivities(activities: Record<string, unknown>[]): Record<str
 
 		const group = grouped[typeName]!;
 		group.count++;
-		group.distanceKm += round1((Number(act["distance"]) || 0) / 1000);
+		group.distanceKm += (Number(act["distance"]) || 0) / 1000;
 		group.durationMin += Math.round((Number(act["duration"]) || 0) / 60);
 		group.calories += Math.round(Number(act["calories"]) || 0);
 
@@ -219,12 +234,23 @@ export function mapActivities(activities: Record<string, unknown>[]): Record<str
 			group.avgHr += hr;
 			group.hrCount++;
 		}
+
+		// Erste Activity mit GPS-Koordinaten merken
+		if (!startLocation) {
+			const lat = Number(act["startLatitude"]);
+			const lon = Number(act["startLongitude"]);
+			if (lat && lon && !isNaN(lat) && !isNaN(lon)) {
+				startLocation = { lat, lon };
+			}
+		}
 	}
 
-	const result: Record<string, string> = {};
-	for (const [type, data] of Object.entries(grouped)) {
-		const parts: string[] = [];
+	const display: Record<string, string> = {};
+	const trainings: TrainingEntry[] = [];
 
+	for (const [type, data] of Object.entries(grouped)) {
+		// Human-readable String
+		const parts: string[] = [];
 		if (data.count > 1) parts.push(`${data.count}x`);
 		if (data.distanceKm > 0) parts.push(`${round1(data.distanceKm)} km`);
 		if (data.durationMin > 0) parts.push(`${data.durationMin}min`);
@@ -232,9 +258,20 @@ export function mapActivities(activities: Record<string, unknown>[]): Record<str
 		if (data.calories > 0) parts.push(`${data.calories} kcal`);
 
 		if (parts.length > 0) {
-			result[type] = parts.join(" · ");
+			display[type] = parts.join(" · ");
 		}
+
+		// Strukturierte Trainingsdaten
+		const entry: TrainingEntry = {
+			type,
+			category: getActivityCategory(type),
+		};
+		if (data.distanceKm > 0) entry.distance_km = round1(data.distanceKm);
+		if (data.durationMin > 0) entry.duration_min = data.durationMin;
+		if (data.hrCount > 0) entry.avg_hr = Math.round(data.avgHr / data.hrCount);
+		if (data.calories > 0) entry.calories = data.calories;
+		trainings.push(entry);
 	}
 
-	return result;
+	return { display, trainings, startLocation };
 }

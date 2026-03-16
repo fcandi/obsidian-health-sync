@@ -13,23 +13,6 @@ export class SyncManager {
 		this.provider = provider;
 	}
 
-	setProvider(provider: HealthProvider): void {
-		this.provider = provider;
-	}
-
-	/** Sync fuer heute ausfuehren */
-	async syncToday(settings: HealthSyncSettings): Promise<boolean> {
-		const today = this.todayString();
-
-		// Pruefen ob heute schon gesynct wurde
-		if (settings.lastSyncDate === today) {
-			new Notice(t("noticeAlreadySynced", settings.language));
-			return false;
-		}
-
-		return this.syncDate(today, settings);
-	}
-
 	/** Sync fuer ein bestimmtes Datum */
 	async syncDate(date: string, settings: HealthSyncSettings): Promise<boolean> {
 		if (!this.provider.isConfigured()) {
@@ -70,6 +53,8 @@ export class SyncManager {
 				dailyNoteFormat: settings.dailyNoteFormat,
 				prefix: settings.usePrefix ? "ohs_" : "",
 				template: settings.dailyNoteTemplate,
+				writeTrainings: settings.writeTrainings,
+				writeWorkoutLocation: settings.writeWorkoutLocation,
 			});
 
 			new Notice(t("noticeSyncSuccess", settings.language));
@@ -118,6 +103,8 @@ export class SyncManager {
 							dailyNoteFormat: settings.dailyNoteFormat,
 							prefix: settings.usePrefix ? "ohs_" : "",
 							template: settings.dailyNoteTemplate,
+							writeTrainings: settings.writeTrainings,
+							writeWorkoutLocation: settings.writeWorkoutLocation,
 						});
 						count++;
 					}
@@ -138,15 +125,10 @@ export class SyncManager {
 		}
 	}
 
-	private todayString(): string {
-		const now = new Date();
-		return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-	}
-
 	private dateRange(from: string, to: string): string[] {
 		const dates: string[] = [];
-		const current = new Date(from);
-		const end = new Date(to);
+		const current = new Date(from + "T00:00:00");
+		const end = new Date(to + "T00:00:00");
 
 		while (current <= end) {
 			dates.push(`${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}-${String(current.getDate()).padStart(2, "0")}`);
