@@ -121,7 +121,9 @@ export class GarminApi {
 
 	/** Login via Electron BrowserWindow */
 	async loginViaBrowser(): Promise<boolean> {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unsafe-assignment
 		const electron = require("electron");
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 		const { BrowserWindow } = electron.remote || electron;
 
 		const signinUrl = this.buildUrl(SSO_SIGNIN, SIGNIN_PARAMS);
@@ -129,7 +131,8 @@ export class GarminApi {
 		return new Promise<boolean>((resolve) => {
 			// Versteckt starten wenn Session bekannt (Auto-Login erwartet)
 			const hasSession = this.session !== null;
-			const authWindow: BrowserWindowType = new BrowserWindow({
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+		const authWindow: BrowserWindowType = new BrowserWindow({
 				width: 500,
 				height: 700,
 				show: !hasSession,
@@ -144,20 +147,21 @@ export class GarminApi {
 
 			// Bei jeder Seite: Padding + Interceptor injizieren
 			authWindow.webContents.on("dom-ready", () => {
-				authWindow.webContents.insertCSS("body { padding: 12px !important; }");
+				void authWindow.webContents.insertCSS("body { padding: 12px !important; }");
 				this.injectInterceptor(authWindow);
 			});
 
 			// Warten bis Connect geladen ist, dann displayName aus App-Traffic extrahieren
 			authWindow.webContents.on("did-finish-load", () => {
 				const url = authWindow.webContents.getURL();
-				console.log("Health Sync: Page loaded:", url);
+				console.debug("Health Sync: Page loaded:", url);
 
 				const isConnectPage = url.startsWith(APP_BASE) || url.startsWith(MODERN_BASE);
 				if (isConnectPage && !resolved) {
 					// Polling: warten bis die App den displayName in einer URL verraten hat
-					const pollInterval = setInterval(async () => {
+					const pollInterval = setInterval(() => {
 						if (resolved) { clearInterval(pollInterval); return; }
+						void (async () => {
 						try {
 							const name = await authWindow.webContents.executeJavaScript(
 								`window.__hs_displayName || ""`
@@ -168,20 +172,21 @@ export class GarminApi {
 								this.session = { displayName: name, timestamp: Date.now() };
 								this.browserWindow = authWindow;
 								authWindow.hide();
-								console.log("Health Sync: Login successful, displayName:", name);
+								console.debug("Health Sync: Login successful, displayName:", name);
 								resolve(true);
 							} else {
-								console.log("Health Sync: Waiting for displayName...");
+								console.debug("Health Sync: Waiting for displayName...");
 							}
 						} catch {
 							// Window might be navigating
 						}
+						})();
 					}, 2000);
 
 					// Nach 10s Fenster anzeigen falls noch nicht eingeloggt
 					setTimeout(() => {
 						if (!resolved && !authWindow.isDestroyed()) {
-							console.log("Health Sync: Auto-login taking long, showing window...");
+							console.debug("Health Sync: Auto-login taking long, showing window...");
 							authWindow.show();
 						}
 					}, 10000);
@@ -204,7 +209,7 @@ export class GarminApi {
 				if (!resolved) { resolved = true; resolve(false); }
 			});
 
-			authWindow.loadURL(signinUrl);
+			void authWindow.loadURL(signinUrl);
 		});
 	}
 
@@ -328,7 +333,7 @@ export class GarminApi {
 
 		// BrowserWindow sicherstellen (Login falls noetig)
 		if (!this.isBrowserReady()) {
-			console.log("Health Sync: Browser not ready, opening...");
+			console.debug("Health Sync: Browser not ready, opening...");
 			const ok = await this.loginViaBrowser();
 			if (!ok) throw new Error("Could not open browser session");
 		}
@@ -337,12 +342,12 @@ export class GarminApi {
 		try {
 			const data = await this.fetchDirectInBrowser(date);
 			if (Object.keys(data).length > 0) {
-				console.log("Health Sync: Direct fetch OK ✓ keys:", Object.keys(data).join(", "));
+				console.debug("Health Sync: Direct fetch OK ✓ keys:", Object.keys(data).join(", "));
 				return data;
 			}
-			console.log("Health Sync: Direct fetch returned no data, falling back to navigation");
+			console.debug("Health Sync: Direct fetch returned no data, falling back to navigation");
 		} catch (e) {
-			console.log("Health Sync: Direct fetch failed, falling back to navigation:", e);
+			console.debug("Health Sync: Direct fetch failed, falling back to navigation:", e);
 		}
 
 		// Slow Path: Seiten-Navigation + Interceptor (~10-15s)
@@ -360,7 +365,7 @@ export class GarminApi {
 			`JSON.stringify(window.__hs_apiHeaders || null)`
 		);
 		if (!headersJson || headersJson === "null") {
-			console.log("Health Sync: No CSRF token captured yet — skipping direct fetch");
+			console.debug("Health Sync: No CSRF token captured yet — skipping direct fetch");
 			return {};
 		}
 
@@ -386,12 +391,12 @@ export class GarminApi {
 			timeout
 		]);
 
-		const entries = JSON.parse(rawJson as string) as Array<{ key: string; status: number; data: unknown; error?: string }>;
+		const entries = JSON.parse(rawJson) as Array<{ key: string; status: number; data: unknown; error?: string }>;
 		const results: Record<string, unknown> = {};
 		const failed: string[] = [];
 
 		for (const entry of entries) {
-			if (entry.data != null && typeof entry.data === "object" && Object.keys(entry.data as object).length > 0) {
+			if (entry.data != null && typeof entry.data === "object" && Object.keys(entry.data as Record<string, unknown>).length > 0) {
 				results[entry.key] = this.transformResponse(entry.key, entry.data);
 			} else if (entry.status !== 200) {
 				failed.push(`${entry.key}:${entry.status}`);
@@ -399,7 +404,7 @@ export class GarminApi {
 		}
 
 		if (failed.length > 0) {
-			console.log("Health Sync: Direct fetch — failed endpoints:", failed.join(", "));
+			console.debug("Health Sync: Direct fetch — failed endpoints:", failed.join(", "));
 		}
 
 		return results;
@@ -426,7 +431,7 @@ export class GarminApi {
 
 		// Zur Daily-Summary-Seite fuer das gewuenschte Datum navigieren
 		const url = `${APP_BASE}/daily-summary/${date}`;
-		console.log("Health Sync: Navigating to", url);
+		console.debug("Health Sync: Navigating to", url);
 		await this.browserWindow!.loadURL(url).catch(() => {});
 
 		// Warten bis die App die API-Calls gemacht hat
@@ -456,11 +461,11 @@ export class GarminApi {
 			JSON.stringify(window.__hs_responses || {})
 		`);
 
-		const responses = JSON.parse(rawJson as string) as Record<string, unknown>;
-		console.log("Health Sync: Navigation fetch keys:", Object.keys(responses).join(", "));
+		const responses = JSON.parse(rawJson) as Record<string, unknown>;
+		console.debug("Health Sync: Navigation fetch keys:", Object.keys(responses).join(", "));
 
 		for (const [key, value] of Object.entries(responses)) {
-			console.log(`Health Sync: Navigation [${key}]`, JSON.stringify(value).substring(0, 150));
+			console.debug(`Health Sync: Navigation [${key}]`, JSON.stringify(value).substring(0, 150));
 		}
 
 		return responses;

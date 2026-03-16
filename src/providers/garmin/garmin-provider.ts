@@ -56,12 +56,12 @@ export class GarminProvider implements HealthProvider {
 		// Nur benoetigte Endpoints aufrufen
 		const requiredEndpoints = getRequiredEndpoints(enabledMetrics);
 		this.api.setRequiredEndpoints(requiredEndpoints);
-		console.log("Health Sync: Endpoints:", requiredEndpoints.join(", "), `(${requiredEndpoints.length}/${enabledMetrics.length} metrics)`);
+		console.debug("Health Sync: Endpoints:", requiredEndpoints.join(", "), `(${requiredEndpoints.length}/${enabledMetrics.length} metrics)`);
 		const metrics: Record<string, number | string> = {};
 
 		const requests: Promise<void>[] = [];
 		const merge = (label: string, data: Record<string, number | string>): void => {
-			console.log(`Health Sync: Mapper [${label}] →`, JSON.stringify(data));
+			console.debug(`Health Sync: Mapper [${label}] →`, JSON.stringify(data));
 			Object.assign(metrics, data);
 		};
 

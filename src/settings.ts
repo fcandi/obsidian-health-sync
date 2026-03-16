@@ -72,6 +72,7 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 			.setName(t("settingsProvider", lang))
 			.setDesc(t("settingsProviderDesc", lang))
 			.addDropdown(drop => drop
+				// eslint-disable-next-line obsidianmd/ui/sentence-case
 				.addOption("garmin", "Garmin Connect")
 				.setValue(this.plugin.settings.provider)
 				.onChange(async (value) => {
@@ -128,6 +129,7 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 			.setName(t("settingsDailyNotePath", lang))
 			.setDesc(t("settingsDailyNotePathDesc", lang))
 			.addText(text => text
+				// eslint-disable-next-line obsidianmd/ui/sentence-case
 				.setPlaceholder("Journal/Daily")
 				.setValue(this.plugin.settings.dailyNotePath)
 				.onChange(async (value) => {
@@ -139,6 +141,7 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 			.setName(t("settingsDailyNoteFormat", lang))
 			.setDesc(t("settingsDailyNoteFormatDesc", lang))
 			.addText(text => text
+				// eslint-disable-next-line obsidianmd/ui/sentence-case
 				.setPlaceholder("YYYY-MM-DD")
 				.setValue(this.plugin.settings.dailyNoteFormat)
 				.onChange(async (value) => {
@@ -180,7 +183,7 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 				}));
 
 		// Standard Metriken
-		containerEl.createEl("h3", { text: t("settingsMetricsStandard", lang) });
+		new Setting(containerEl).setName(t("settingsMetricsStandard", lang)).setHeading();
 		for (const metric of METRICS.filter(m => m.category === "standard")) {
 			const labelKey = `metric_${metric.key}` as TranslationKeys;
 			new Setting(containerEl)

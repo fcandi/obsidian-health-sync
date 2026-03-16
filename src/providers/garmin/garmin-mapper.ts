@@ -194,7 +194,8 @@ export function mapTrainingStatus(data: Record<string, unknown>, enabled: Set<st
 	if (!enabled.has("training_status")) return result;
 
 	const status = data["currentTrainingStatusPhrase"] ?? data["trainingStatusPhrase"];
-	if (status != null) result["training_status"] = String(status);
+	if (typeof status === "string") result["training_status"] = status;
+	else if (typeof status === "number") result["training_status"] = String(status);
 
 	return result;
 }
@@ -216,14 +217,15 @@ export function mapActivities(activities: Record<string, unknown>[]): ActivityRe
 
 	for (const act of activities) {
 		// typeKey von der API normalisieren (e_bike_fitness → e_bike, etc.)
-		const rawKey = String(get(act, "activityType.typeKey") ?? "workout");
+		const typeKeyValue = get(act, "activityType.typeKey");
+		const rawKey = typeof typeKeyValue === "string" ? typeKeyValue : "workout";
 		const typeName = normalizeActivityKey(rawKey);
 
 		if (!grouped[typeName]) {
 			grouped[typeName] = { count: 0, distanceKm: 0, durationMin: 0, avgHr: 0, hrCount: 0, calories: 0 };
 		}
 
-		const group = grouped[typeName]!;
+		const group = grouped[typeName];
 		group.count++;
 		group.distanceKm += (Number(act["distance"]) || 0) / 1000;
 		group.durationMin += Math.round((Number(act["duration"]) || 0) / 60);

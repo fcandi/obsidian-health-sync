@@ -101,7 +101,7 @@ export async function writeToDailyNote(
 		}
 		const filePath = normalizePath(`${folder}/${fileName}.md`);
 		const initialContent = options.template || "";
-		file = await app.vault.create(filePath, initialContent) as TFile;
+		file = await app.vault.create(filePath, initialContent);
 	}
 
 	// Properties vorbereiten
@@ -141,7 +141,7 @@ async function updateFrontmatter(
 	file: TFile,
 	properties: Record<string, number | string | Record<string, unknown>[]>
 ): Promise<void> {
-	await app.fileManager.processFrontMatter(file, (frontmatter) => {
+	await app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 		for (const [key, value] of Object.entries(properties)) {
 			frontmatter[key] = value;
 		}

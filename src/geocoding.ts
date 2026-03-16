@@ -3,6 +3,8 @@
  * Kostenfrei, kein API-Key noetig. Rate Limit: 1 req/s pro IP.
  */
 
+import { requestUrl } from "obsidian";
+
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse";
 const USER_AGENT = "ObsidianHealthSync/1.0";
 
@@ -27,13 +29,14 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string |
 	try {
 		const lang = document.documentElement.lang?.slice(0, 2) || "en";
 		const url = `${NOMINATIM_URL}?lat=${lat}&lon=${lon}&format=json&zoom=14&accept-language=${lang}`;
-		const response = await fetch(url, {
+		const response = await requestUrl({
+			url,
 			headers: { "User-Agent": USER_AGENT },
 		});
 
-		if (!response.ok) return null;
+		if (response.status !== 200) return null;
 
-		const data = await response.json() as {
+		const data = response.json as {
 			address?: {
 				city?: string;
 				town?: string;

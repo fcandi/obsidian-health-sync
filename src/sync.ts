@@ -90,7 +90,7 @@ export class SyncManager {
 
 			// Delay basierend auf Anzahl Endpoints berechnen (50 Req/Min Budget)
 			const batchDelay = this.provider.getRecommendedBatchDelay?.(enabledMetrics) ?? 2000;
-			console.log(`Health Sync: Backfill ${dates.length} dates, delay ${batchDelay}ms`);
+			console.debug(`Health Sync: Backfill ${dates.length} dates, delay ${batchDelay}ms`);
 
 			for (const date of dates) {
 				try {

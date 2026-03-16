@@ -43,12 +43,14 @@ export default class HealthSyncPlugin extends Plugin {
 			id: "backfill-health-data",
 			name: t("commandBackfill", this.settings.language),
 			callback: () => {
-				new BackfillModal(this.app, this.settings.language, async (from, to) => {
-					const count = await this.syncManager.backfill(from, to, this.settings);
-					if (count > 0) {
-						await this.saveSession();
-						await this.saveSettings();
-					}
+				new BackfillModal(this.app, this.settings.language, (from, to) => {
+					void (async () => {
+						const count = await this.syncManager.backfill(from, to, this.settings);
+						if (count > 0) {
+							await this.saveSession();
+							await this.saveSettings();
+						}
+					})();
 				}).open();
 			},
 		});
@@ -58,14 +60,14 @@ export default class HealthSyncPlugin extends Plugin {
 
 		// Beim Start: nur Auto-Sync — BrowserWindow oeffnet sich erst bei Bedarf
 		this.app.workspace.onLayoutReady(() => {
-			this.tryAutoSync();
+			void this.tryAutoSync();
 		});
 
 		// Auto-Sync beim Oeffnen von heute/gestern Daily Note
 		this.registerEvent(
 			this.app.workspace.on("file-open", (file) => {
 				if (file instanceof TFile && this.isDailyNote(file, [this.todayString(), this.yesterdayString()])) {
-					this.tryAutoSync();
+					void this.tryAutoSync();
 				}
 			})
 		);
@@ -124,13 +126,13 @@ export default class HealthSyncPlugin extends Plugin {
 		}
 
 		if (datesToSync.length === 0) {
-			console.log("Health Sync: Auto-sync — all 7 days already have data");
+			console.debug("Health Sync: Auto-sync — all 7 days already have data");
 			this.settings.lastSyncDate = today;
 			await this.saveSettings();
 			return;
 		}
 
-		console.log("Health Sync: Auto-sync — missing data for:", datesToSync.join(", "));
+		console.debug("Health Sync: Auto-sync — missing data for:", datesToSync.join(", "));
 
 		try {
 			const batchDelay = this.garminProvider.getRecommendedBatchDelay(enabledMetrics);
@@ -152,7 +154,7 @@ export default class HealthSyncPlugin extends Plugin {
 			await this.saveSettings();
 
 			if (synced > 0) {
-				console.log(`Health Sync: Auto-sync done — ${synced}/${datesToSync.length} days synced`);
+				console.debug(`Health Sync: Auto-sync done — ${synced}/${datesToSync.length} days synced`);
 			}
 		} catch (error) {
 			console.error("Health Sync: Auto-sync failed", error);
@@ -238,7 +240,7 @@ export default class HealthSyncPlugin extends Plugin {
 			if (periodicNotes.settings.daily.format) {
 				this.settings.dailyNoteFormat = periodicNotes.settings.daily.format;
 			}
-			console.log("Health Sync: Auto-detected daily note path from Periodic Notes:", this.settings.dailyNotePath);
+			console.debug("Health Sync: Auto-detected daily note path from Periodic Notes:", this.settings.dailyNotePath);
 			return;
 		}
 
@@ -250,7 +252,7 @@ export default class HealthSyncPlugin extends Plugin {
 			if (dailyNotes.instance.options.format) {
 				this.settings.dailyNoteFormat = dailyNotes.instance.options.format;
 			}
-			console.log("Health Sync: Auto-detected daily note path from Daily Notes:", this.settings.dailyNotePath);
+			console.debug("Health Sync: Auto-detected daily note path from Daily Notes:", this.settings.dailyNotePath);
 			return;
 		}
 	}
