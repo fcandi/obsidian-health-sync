@@ -54,8 +54,6 @@ export const de: Record<TranslationKeys, string> = {
 	metric_training_status: "Trainingsstatus",
 	metric_weight_kg: "Gewicht (kg)",
 	metric_body_fat_pct: "Körperfettanteil",
-	metric_hydration_ml: "Flüssigkeitszufuhr (ml)",
-
 	// Notices
 	noticeSyncing: "Synchronisiere Gesundheitsdaten...",
 	noticeSyncSuccess: "Gesundheitsdaten erfolgreich synchronisiert",

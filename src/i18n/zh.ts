@@ -54,8 +54,6 @@ export const zh: Record<TranslationKeys, string> = {
 	metric_training_status: "训练状态",
 	metric_weight_kg: "体重（公斤）",
 	metric_body_fat_pct: "体脂率",
-	metric_hydration_ml: "饮水量（毫升）",
-
 	// Notices
 	noticeSyncing: "正在同步健康数据...",
 	noticeSyncSuccess: "健康数据同步成功",

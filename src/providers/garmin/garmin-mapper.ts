@@ -100,7 +100,7 @@ export function mapHrvData(data: Record<string, unknown>, enabled: Set<string>):
 	const result: Record<string, number | string> = {};
 	if (!enabled.has("hrv")) return result;
 
-	const hrvValue = get(data, "hrvSummary.weeklyAvg") ?? get(data, "hrvSummary.lastNightAvg") ?? data["hrvStatus"];
+	const hrvValue = get(data, "hrvSummary.lastNightAvg") ?? get(data, "hrvSummary.weeklyAvg") ?? data["hrvStatus"];
 	if (hrvValue != null) result["hrv"] = Math.round(Number(hrvValue));
 
 	return result;
@@ -162,17 +162,6 @@ export function mapWeight(data: Record<string, unknown>, enabled: Set<string>): 
 		const fat = latest["bodyFat"];
 		if (fat != null) result["body_fat_pct"] = round1(Number(fat));
 	}
-
-	return result;
-}
-
-/** Mappt Hydrations-Daten */
-export function mapHydration(data: Record<string, unknown>, enabled: Set<string>): Record<string, number | string> {
-	const result: Record<string, number | string> = {};
-	if (!enabled.has("hydration_ml")) return result;
-
-	const intake = data["valueInML"] ?? data["hydrationIntakeML"];
-	if (intake != null && Number(intake) > 0) result["hydration_ml"] = Number(intake);
 
 	return result;
 }

@@ -8,7 +8,6 @@ import {
 	mapSpO2,
 	mapRespiration,
 	mapWeight,
-	mapHydration,
 	mapTrainingReadiness,
 	mapTrainingStatus,
 	mapActivities,
@@ -129,15 +128,6 @@ export class GarminProvider implements HealthProvider {
 				this.api.fetchWeight(date)
 					.then(data => merge("weight", mapWeight(data, enabled)))
 					.catch(e => console.warn("Health Sync: Weight fetch failed", e))
-			);
-		}
-
-		// Hydration
-		if (enabled.has("hydration_ml")) {
-			requests.push(
-				this.api.fetchHydration(date)
-					.then(data => merge("hydration", mapHydration(data, enabled)))
-					.catch(e => console.warn("Health Sync: Hydration fetch failed", e))
 			);
 		}
 

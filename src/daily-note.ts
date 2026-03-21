@@ -33,39 +33,18 @@ function findInFolder(folder: TFolder, targetName: string): TFile | null {
 	return null;
 }
 
-/**
- * Prueft ob eine Daily Note bereits Health-Daten im Frontmatter hat.
- * Gibt true zurueck wenn mindestens eine aktivierte Metrik vorhanden ist.
- */
-export function hasHealthData(
-	app: App,
-	date: string,
-	options: {
-		dailyNotePath: string;
-		dailyNoteFormat: string;
-		prefix: string;
-		enabledMetrics: string[];
+/** Erstellt einen Ordner inkl. aller Eltern-Verzeichnisse */
+async function ensureFolderExists(app: App, folderPath: string): Promise<void> {
+	const normalized = normalizePath(folderPath);
+	if (app.vault.getAbstractFileByPath(normalized)) return;
+	const parts = normalized.split("/");
+	let current = "";
+	for (const part of parts) {
+		current = current ? `${current}/${part}` : part;
+		if (!app.vault.getAbstractFileByPath(current)) {
+			await app.vault.createFolder(current);
+		}
 	}
-): boolean {
-	const fileName = formatDate(date, options.dailyNoteFormat);
-	const file = findDailyNoteRecursive(app, fileName, options.dailyNotePath);
-	if (!file) return false;
-
-	const cache = app.metadataCache.getFileCache(file);
-	if (!cache?.frontmatter) return false;
-
-	// Metriken pruefen
-	for (const metric of options.enabledMetrics) {
-		const key = applyPrefix(metric, options.prefix);
-		if (cache.frontmatter[key] !== undefined) return true;
-	}
-
-	// Activity-Indikatoren pruefen (zeigen an, dass bereits gesynct wurde)
-	for (const key of ["trainings", "workout_location"]) {
-		if (cache.frontmatter[applyPrefix(key, options.prefix)] !== undefined) return true;
-	}
-
-	return false;
 }
 
 /**
@@ -91,15 +70,12 @@ export async function writeToDailyNote(
 	let file: TFile | null = findDailyNoteRecursive(app, fileName, options.dailyNotePath);
 
 	if (!file) {
-		// Neue Daily Note im Hauptverzeichnis erstellen
-		const folder = options.dailyNotePath;
-		if (folder) {
-			const folderExists = app.vault.getAbstractFileByPath(normalizePath(folder));
-			if (!folderExists) {
-				await app.vault.createFolder(normalizePath(folder));
-			}
+		// Neue Daily Note erstellen (ggf. mit Unterverzeichnissen aus dem Format)
+		const filePath = normalizePath(`${options.dailyNotePath}/${fileName}.md`);
+		const fileDir = filePath.substring(0, filePath.lastIndexOf("/"));
+		if (fileDir) {
+			await ensureFolderExists(app, fileDir);
 		}
-		const filePath = normalizePath(`${folder}/${fileName}.md`);
 		const initialContent = options.template || "";
 		file = await app.vault.create(filePath, initialContent);
 	}
@@ -141,11 +117,78 @@ async function updateFrontmatter(
 	file: TFile,
 	properties: Record<string, number | string | Record<string, unknown>[]>
 ): Promise<void> {
-	await app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+	const applyProperties = (frontmatter: Record<string, unknown>): void => {
 		for (const [key, value] of Object.entries(properties)) {
 			frontmatter[key] = value;
 		}
-	});
+	};
+
+	// A: Praeventiv doppelte Frontmatter-Keys bereinigen
+	await deduplicateFrontmatter(app, file);
+
+	try {
+		await app.fileManager.processFrontMatter(file, applyProperties);
+	} catch (e) {
+		// B: Falls YAML trotzdem fehlschlaegt, aggressiver bereinigen und nochmal versuchen
+		if (e instanceof Error && e.message.includes("Map keys must be unique")) {
+			console.warn("Health Sync: Fixing corrupt frontmatter in", file.path);
+			await deduplicateFrontmatter(app, file);
+			await app.fileManager.processFrontMatter(file, applyProperties);
+		} else {
+			throw e;
+		}
+	}
+}
+
+/**
+ * Bereinigt doppelte Top-Level-Keys im Frontmatter einer Datei.
+ * Behaelt jeweils den letzten Wert (neueste Daten).
+ */
+async function deduplicateFrontmatter(app: App, file: TFile): Promise<void> {
+	const content = await app.vault.read(file);
+	const fmMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+	if (!fmMatch) return;
+
+	const fmContent = fmMatch[1]!;
+	const lines = fmContent.split("\n");
+
+	// Top-Level-Keys und ihre Zeilenbereiche identifizieren
+	const entries: { key: string; start: number; end: number }[] = [];
+	for (let i = 0; i < lines.length; i++) {
+		const keyMatch = lines[i]!.match(/^([a-zA-Z_][\w]*)\s*:/);
+		if (keyMatch) {
+			if (entries.length > 0) entries[entries.length - 1]!.end = i - 1;
+			entries.push({ key: keyMatch[1]!, start: i, end: i });
+		} else if (entries.length > 0) {
+			// Continuation-Zeile (z.B. YAML-Array) → gehoert zum letzten Key
+			entries[entries.length - 1]!.end = i;
+		}
+	}
+
+	// Duplikate finden — letztes Vorkommen jedes Keys behalten
+	const lastIndex = new Map<string, number>();
+	let hasDuplicates = false;
+	for (let i = 0; i < entries.length; i++) {
+		if (lastIndex.has(entries[i]!.key)) hasDuplicates = true;
+		lastIndex.set(entries[i]!.key, i);
+	}
+	if (!hasDuplicates) return;
+
+	const keep = new Set(lastIndex.values());
+	const newLines: string[] = [];
+	for (let i = 0; i < entries.length; i++) {
+		if (keep.has(i)) {
+			for (let j = entries[i]!.start; j <= entries[i]!.end; j++) {
+				newLines.push(lines[j]!);
+			}
+		}
+	}
+
+	const newContent = content.replace(/^---\r?\n[\s\S]*?\r?\n---/, `---\n${newLines.join("\n")}\n---`);
+	if (newContent !== content) {
+		await app.vault.modify(file, newContent);
+		console.debug("Health Sync: Deduplicated frontmatter in", file.path);
+	}
 }
 
 /**
@@ -157,7 +200,7 @@ function formatDate(dateStr: string, format: string): string {
 	if (!year || !month || !day) return dateStr;
 
 	return format
-		.replace("YYYY", year)
-		.replace("MM", month)
-		.replace("DD", day);
+		.replace(/YYYY/g, year)
+		.replace(/MM/g, month)
+		.replace(/DD/g, day);
 }

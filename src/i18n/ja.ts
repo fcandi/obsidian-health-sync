@@ -54,8 +54,6 @@ export const ja: Record<TranslationKeys, string> = {
 	metric_training_status: "トレーニングステータス",
 	metric_weight_kg: "体重（kg）",
 	metric_body_fat_pct: "体脂肪率",
-	metric_hydration_ml: "水分摂取量（ml）",
-
 	// Notices
 	noticeSyncing: "ヘルスデータを同期中...",
 	noticeSyncSuccess: "ヘルスデータの同期が完了しました",

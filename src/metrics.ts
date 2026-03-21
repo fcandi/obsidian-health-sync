@@ -31,7 +31,6 @@ export const METRICS: MetricDefinition[] = [
 	{ key: "training_status", type: "string", category: "extended", defaultEnabled: false },
 	{ key: "weight_kg", type: "number", category: "extended", defaultEnabled: false },
 	{ key: "body_fat_pct", type: "number", category: "extended", defaultEnabled: false },
-	{ key: "hydration_ml", type: "number", category: "extended", defaultEnabled: false },
 ];
 
 export function getDefaultEnabledMetrics(): Record<string, boolean> {

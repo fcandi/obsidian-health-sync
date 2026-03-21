@@ -54,8 +54,6 @@ export const es: Record<TranslationKeys, string> = {
 	metric_training_status: "Estado de entrenamiento",
 	metric_weight_kg: "Peso (kg)",
 	metric_body_fat_pct: "Grasa corporal %",
-	metric_hydration_ml: "Hidratación (ml)",
-
 	// Notices
 	noticeSyncing: "Sincronizando datos de salud...",
 	noticeSyncSuccess: "Datos de salud sincronizados correctamente",

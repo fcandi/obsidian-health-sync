@@ -11,7 +11,8 @@ export interface HealthSyncSettings {
 	dailyNoteFormat: string;
 	dailyNoteTemplate: string;
 	enabledMetrics: Record<string, boolean>;
-	lastSyncDate: string;
+	lastSyncDate: string; // Legacy — wird nicht mehr geschrieben
+	lastSyncTimes: Record<string, number>; // Datum → letzter Sync-Timestamp (epoch ms)
 	garminSession: string;
 	language: string;
 	autoSync: boolean;
@@ -28,6 +29,7 @@ export const DEFAULT_SETTINGS: HealthSyncSettings = {
 	dailyNoteTemplate: "",
 	enabledMetrics: getDefaultEnabledMetrics(),
 	lastSyncDate: "",
+	lastSyncTimes: {},
 	garminSession: "",
 	language: "en",
 	autoSync: true,

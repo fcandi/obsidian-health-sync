@@ -52,8 +52,6 @@ export const en = {
 	metric_training_status: "Training Status",
 	metric_weight_kg: "Weight (kg)",
 	metric_body_fat_pct: "Body Fat %",
-	metric_hydration_ml: "Hydration (ml)",
-
 	// Notices
 	noticeSyncing: "Syncing health data...",
 	noticeSyncSuccess: "Health data synced successfully",

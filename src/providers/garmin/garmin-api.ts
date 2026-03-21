@@ -22,7 +22,6 @@ const ENDPOINTS: Record<string, (displayName: string, date: string) => string> =
 	respiration: (_, date) => `${API_BASE}/wellness-service/wellness/daily/respiration/${date}`,
 	trainingStatus: (_, date) => `${API_BASE}/metrics-service/metrics/maxmet/daily/${date}/${date}`,
 	trainingReadiness: (_, date) => `${API_BASE}/metrics-service/metrics/trainingreadiness/${date}`,
-	hydration: (_, date) => `${API_BASE}/usersummary-service/usersummary/hydration/daily/${date}`,
 };
 
 /** Welche Metriken brauchen welchen Endpoint */
@@ -37,7 +36,6 @@ const ENDPOINT_METRIC_MAP: Record<string, string[]> = {
 	respiration: ["respiration_rate"],
 	trainingStatus: ["training_status"],
 	trainingReadiness: ["training_readiness"],
-	hydration: ["hydration_ml"],
 };
 
 /** Bestimmt welche Endpoints fuer die aktivierten Metriken noetig sind */
@@ -281,8 +279,6 @@ export class GarminApi {
 								window.__hs_responses.trainingStatus = data;
 							if (url.includes("trainingreadiness"))
 								window.__hs_responses.trainingReadiness = Array.isArray(data) ? data[0] : data;
-							if (url.includes("hydration/daily"))
-								window.__hs_responses.hydration = data;
 						}).catch(() => {});
 					}
 
@@ -514,11 +510,6 @@ export class GarminApi {
 	async fetchWeight(date: string): Promise<Record<string, unknown>> {
 		const data = await this.getCachedOrFetch(date);
 		return (data.weight || {}) as Record<string, unknown>;
-	}
-
-	async fetchHydration(date: string): Promise<Record<string, unknown>> {
-		const data = await this.getCachedOrFetch(date);
-		return (data.hydration || {}) as Record<string, unknown>;
 	}
 
 	async fetchRespiration(date: string): Promise<Record<string, unknown>> {

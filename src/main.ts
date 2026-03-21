@@ -4,7 +4,6 @@ import { SyncManager } from "./sync";
 import { GarminProvider } from "./providers/garmin/garmin-provider";
 import type { GarminSession } from "./providers/garmin/garmin-api";
 import { t } from "./i18n/t";
-import { hasHealthData } from "./daily-note";
 
 export default class HealthSyncPlugin extends Plugin {
 	settings: HealthSyncSettings;
@@ -77,13 +76,11 @@ export default class HealthSyncPlugin extends Plugin {
 		try { this.garminProvider.closeBrowser(); } catch { /* ignore */ }
 	}
 
-	/** Auto-Sync — prueft die letzten 7 Tage, synct fehlende */
+	/** Auto-Sync — prueft die letzten 7 Tage, synct fehlende oder veraltete */
 	private async tryAutoSync(): Promise<void> {
 		if (!this.settings.autoSync) return;
 		if (this.settings.autoSyncPaused) return;
 		if (this.autoSyncRunning) return;
-		const today = this.todayString();
-		if (this.settings.lastSyncDate === today) return; // Heute schon gelaufen
 		if (!this.garminProvider.isSessionValid()) {
 			this.settings.autoSyncPaused = true;
 			await this.saveSettings();
@@ -93,46 +90,56 @@ export default class HealthSyncPlugin extends Plugin {
 
 		this.autoSyncRunning = true;
 		try {
-			await this.runAutoSync(today);
+			await this.runAutoSync();
 		} finally {
 			this.autoSyncRunning = false;
 		}
 	}
 
-	private async runAutoSync(today: string): Promise<void> {
+	private async runAutoSync(): Promise<void> {
 		if (!this.garminProvider.isSessionValid()) return;
 
-		const enabledMetrics = Object.entries(this.settings.enabledMetrics)
-			.filter(([, enabled]) => enabled)
-			.map(([key]) => key);
+		const now = Date.now();
+		const RESYNC_WINDOW_MS = 72 * 60 * 60 * 1000; // 72h — jüngere Daten dürfen überschrieben werden
+		const COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6h Pause zwischen Re-Syncs pro Datum
+		const FIRST_COOLDOWN_MS = 30 * 60 * 1000; // 30min — erster Re-Sync schneller
+		const syncTimes = this.settings.lastSyncTimes;
 
-		const checkOptions = {
-			dailyNotePath: this.settings.dailyNotePath,
-			dailyNoteFormat: this.settings.dailyNoteFormat,
-			prefix: this.settings.usePrefix ? "ohs_" : "",
-			enabledMetrics,
-		};
-
-		// Letzte 7 Tage pruefen — welche haben noch keine Health-Daten?
+		// Letzte 7 Tage pruefen — welche brauchen einen (Re-)Sync?
 		const datesToSync: string[] = [];
 		for (let i = 1; i <= 7; i++) {
 			const d = new Date();
 			d.setDate(d.getDate() - i);
 			const dateStr = this.dateString(d);
 
-			if (!hasHealthData(this.app, dateStr, checkOptions)) {
-				datesToSync.push(dateStr);
+			// Alter des Datums: Mitternacht Folgetag = "Daten komplett"
+			const dateEnd = new Date(dateStr + "T00:00:00");
+			dateEnd.setDate(dateEnd.getDate() + 1);
+			const ageMs = now - dateEnd.getTime();
+
+			const lastSync = syncTimes[dateStr];
+
+			if (ageMs > RESYNC_WINDOW_MS) {
+				// Aelter als 72h: nur synchen wenn noch nie gesynct
+				if (!lastSync) datesToSync.push(dateStr);
+			} else {
+				// Innerhalb 72h: Re-Sync erlaubt, aber mit 6h Cooldown
+				if (!lastSync || (now - lastSync) >= COOLDOWN_MS) {
+					datesToSync.push(dateStr);
+				}
 			}
 		}
 
 		if (datesToSync.length === 0) {
-			console.debug("Health Sync: Auto-sync — all 7 days already have data");
-			this.settings.lastSyncDate = today;
-			await this.saveSettings();
+			console.debug("Health Sync: Auto-sync — nothing to sync (all within cooldown or already synced)");
 			return;
 		}
 
-		console.debug("Health Sync: Auto-sync — missing data for:", datesToSync.join(", "));
+		console.debug("Health Sync: Auto-sync — syncing:", datesToSync.join(", "));
+
+		const enabledMetrics = Object.entries(this.settings.enabledMetrics)
+			.filter(([, enabled]) => enabled)
+			.map(([key]) => key);
 
 		try {
 			const batchDelay = this.garminProvider.getRecommendedBatchDelay(enabledMetrics);
@@ -141,7 +148,17 @@ export default class HealthSyncPlugin extends Plugin {
 			for (let i = 0; i < datesToSync.length; i++) {
 				const date = datesToSync[i]!;
 				const success = await this.syncManager.syncDate(date, this.settings);
-				if (success) synced++;
+				if (success) {
+					synced++;
+					const isFirstSync = !this.settings.lastSyncTimes[date];
+					if (isFirstSync) {
+						// Erster Sync: kurzem Cooldown (30min) simulieren
+						this.settings.lastSyncTimes[date] = Date.now() - (COOLDOWN_MS - FIRST_COOLDOWN_MS);
+					} else {
+						// Folgende Syncs: voller 6h Cooldown
+						this.settings.lastSyncTimes[date] = Date.now();
+					}
+				}
 
 				// Rate-Limit-Delay zwischen Daten (nicht nach dem letzten)
 				if (i < datesToSync.length - 1) {
@@ -149,7 +166,14 @@ export default class HealthSyncPlugin extends Plugin {
 				}
 			}
 
-			this.settings.lastSyncDate = today;
+			// Alte Eintraege bereinigen (aelter als 8 Tage)
+			const CLEANUP_AGE_MS = 8 * 24 * 60 * 60 * 1000;
+			for (const [dateKey, timestamp] of Object.entries(this.settings.lastSyncTimes)) {
+				if (now - timestamp > CLEANUP_AGE_MS) {
+					delete this.settings.lastSyncTimes[dateKey];
+				}
+			}
+
 			await this.saveSession();
 			await this.saveSettings();
 
@@ -174,10 +198,7 @@ export default class HealthSyncPlugin extends Plugin {
 		const syncDate = this.detectSyncDate();
 		const success = await this.syncManager.syncDate(syncDate, this.settings);
 		if (success) {
-			// lastSyncDate nur setzen wenn es der regulaere Gestern-Sync war
-			if (syncDate === this.yesterdayString()) {
-				this.settings.lastSyncDate = syncDate;
-			}
+			this.settings.lastSyncTimes[syncDate] = Date.now();
 			await this.saveSession();
 			await this.saveSettings();
 		}
