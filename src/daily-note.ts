@@ -80,7 +80,7 @@ export async function writeToDailyNote(
 		file = await app.vault.create(filePath, initialContent);
 	}
 
-	// Properties vorbereiten
+	// Build properties map
 	const properties: Record<string, number | string | Record<string, unknown>[]> = {};
 
 	for (const [key, value] of Object.entries(data.metrics)) {
@@ -104,7 +104,7 @@ export async function writeToDailyNote(
 		}
 	}
 
-	// Frontmatter aktualisieren
+	// Write to frontmatter
 	await updateFrontmatter(app, file, properties);
 }
 

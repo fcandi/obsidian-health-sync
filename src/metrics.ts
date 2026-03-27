@@ -6,7 +6,7 @@ export interface MetricDefinition {
 }
 
 export const METRICS: MetricDefinition[] = [
-	// Standard (automatisch aktiviert)
+	// Standard (enabled by default)
 	{ key: "steps", type: "number", category: "standard", defaultEnabled: true },
 	{ key: "sleep_duration", type: "string", category: "standard", defaultEnabled: true },
 	{ key: "sleep_score", type: "number", category: "standard", defaultEnabled: true },
@@ -14,7 +14,7 @@ export const METRICS: MetricDefinition[] = [
 	{ key: "hrv", type: "number", category: "standard", defaultEnabled: true },
 	{ key: "stress", type: "number", category: "standard", defaultEnabled: true },
 
-	// Erweitert (manuell aktivierbar)
+	// Extended (manually enabled)
 	{ key: "body_battery", type: "number", category: "extended", defaultEnabled: false },
 	{ key: "spo2", type: "number", category: "extended", defaultEnabled: false },
 	{ key: "respiration_rate", type: "number", category: "extended", defaultEnabled: false },

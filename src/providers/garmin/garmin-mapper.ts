@@ -252,7 +252,7 @@ export function mapActivities(activities: Record<string, unknown>[]): ActivityRe
 			display[type] = parts.join(" · ");
 		}
 
-		// Strukturierte Trainingsdaten
+		// Structured training entry
 		const entry: TrainingEntry = {
 			type,
 			category: getActivityCategory(type),
