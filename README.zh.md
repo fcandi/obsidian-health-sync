@@ -1,16 +1,10 @@
 [English](README.md) · [Deutsch](README.de.md) · **中文** · [日本語](README.ja.md) · [Español](README.es.md) · [Français](README.fr.md)
 
-# Obsidian Health Sync
+# Garmin Health Sync
 
-自动将步数、睡眠、心率、压力、运动等健康数据从你的健身追踪器同步到 Obsidian Daily Notes —— 作为 frontmatter 属性，可通过 Dataview 查询。
+自动将步数、睡眠、心率、压力、运动等健康数据从 Garmin Connect 同步到 Obsidian Daily Notes —— 作为 frontmatter 属性，可通过 Dataview 查询。
 
-> **仅限桌面端。** 本插件使用 Electron 的 BrowserWindow 进行身份验证，不支持移动设备。
-
-## 支持的服务商
-
-- **Garmin Connect** —— 使用你的 Garmin 账号密码直接登录，无需 API 密钥
-
-更多服务商（Fitbit、Oura、Whoop）正在计划中。
+> **仅限桌面端。** 本插件使用 Electron 的 BrowserWindow 进行 Garmin Connect 身份验证，不支持移动设备。
 
 ## 功能特性
 
@@ -81,20 +75,20 @@ trainings:
 ### 从 Community Plugins 安装（推荐）
 
 1. 打开 Obsidian 设置 → Community Plugins → 浏览
-2. 搜索 "Health Sync"
+2. 搜索 "Garmin Health Sync"
 3. 安装并启用插件
 4. 在插件设置中登录 Garmin Connect
 
 ### 手动安装
 
-1. 从[最新发布](https://github.com/fcandi/obsidian-health-sync/releases)下载 `main.js` 和 `manifest.json`
-2. 在你的 vault 中创建文件夹 `.obsidian/plugins/obsidian-health-sync/`
+1. 从[最新发布](https://github.com/fcandi/garmin-health-sync/releases)下载 `main.js` 和 `manifest.json`
+2. 在你的 vault 中创建文件夹 `.obsidian/plugins/garmin-health-sync/`
 3. 将两个文件复制到该文件夹
 4. 在设置 → Community Plugins 中启用插件
 
 ## 活动键名标准化
 
-各服务商特有的活动名称会被标准化为统一键名。Garmin 的 `typeKey` 值作为基准标准，对过于冗长的键名进行了少量精简：
+Garmin 的 `typeKey` 值会被标准化为更简洁的规范键名：
 
 | 服务商键名 | 标准键名 | 分类 |
 |---|---|---|
@@ -109,7 +103,7 @@ trainings:
 
 ### 活动分类
 
-每项活动会被分配一个分类，以实现跨服务商的兼容性：
+每项活动会被分配一个分类：
 
 | 分类 | 示例 |
 |---|---|
@@ -124,8 +118,6 @@ trainings:
 | `racket` | tennis, badminton, squash, table_tennis, pickleball |
 | `team` | soccer, basketball, volleyball, rugby |
 | `other` | golf, meditation, multi_sport |
-
-未来的服务商（Fitbit、Oura 等）将把各自的活动名称映射到相同的标准键名。
 
 ## 开发
 

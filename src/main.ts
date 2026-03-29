@@ -15,7 +15,6 @@ export default class HealthSyncPlugin extends Plugin {
 		await this.loadSettings();
 		this.autoDetectDailyNotePath();
 
-		// Initialize provider
 		this.garminProvider = new GarminProvider();
 
 		// Restore session
@@ -103,6 +102,7 @@ export default class HealthSyncPlugin extends Plugin {
 		const RESYNC_WINDOW_MS = 72 * 60 * 60 * 1000; // 72h — more recent data may be overwritten
 		const COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6h cooldown between re-syncs per date
 		const FIRST_RESYNC_AFTER_MS = 30 * 60 * 1000; // 30min — first re-sync happens sooner
+		const NO_DATA_COOLDOWN_MS = 1 * 60 * 60 * 1000; // 1h cooldown for dates that returned no data
 		const syncTimes = this.settings.lastSyncTimes;
 
 		// Check last 7 days — which ones need a (re-)sync?
@@ -131,18 +131,18 @@ export default class HealthSyncPlugin extends Plugin {
 		}
 
 		if (datesToSync.length === 0) {
-			console.debug("Health Sync: Auto-sync — nothing to sync (all within cooldown or already synced)");
+			console.debug("Garmin Health Sync: Auto-sync — nothing to sync (all within cooldown or already synced)");
 			return;
 		}
 
-		console.debug("Health Sync: Auto-sync — syncing:", datesToSync.join(", "));
+		console.debug("Garmin Health Sync: Auto-sync — syncing:", datesToSync.join(", "));
 
 		const enabledMetrics = Object.entries(this.settings.enabledMetrics)
 			.filter(([, enabled]) => enabled)
 			.map(([key]) => key);
 
 		try {
-			const batchDelay = this.garminProvider.getRecommendedBatchDelay(enabledMetrics);
+			const batchDelay = this.garminProvider.getRecommendedBatchDelay?.(enabledMetrics) ?? 2000;
 			let synced = 0;
 
 			for (let i = 0; i < datesToSync.length; i++) {
@@ -158,6 +158,9 @@ export default class HealthSyncPlugin extends Plugin {
 						// Subsequent syncs: full 6h cooldown
 						this.settings.lastSyncTimes[date] = Date.now();
 					}
+				} else {
+					// No data: still set a cooldown so we don't hammer the API on every page switch
+					this.settings.lastSyncTimes[date] = Date.now() - (COOLDOWN_MS - NO_DATA_COOLDOWN_MS);
 				}
 
 				// Rate-limit delay between dates (not after the last one)
@@ -178,12 +181,12 @@ export default class HealthSyncPlugin extends Plugin {
 			await this.saveSettings();
 
 			if (synced > 0) {
-				console.debug(`Health Sync: Auto-sync done — ${synced}/${datesToSync.length} days synced`);
+				console.debug(`Garmin Health Sync: Auto-sync done — ${synced}/${datesToSync.length} days synced`);
 			}
 		} catch (error) {
 			// login_required: notice was already shown in syncDate
 			if (!(error instanceof Error && error.message === "login_required")) {
-				console.error("Health Sync: Auto-sync failed", error);
+				console.error("Garmin Health Sync: Auto-sync failed", error);
 				new Notice(t("noticeAutoSyncPaused", this.settings.language));
 			}
 			this.settings.autoSyncPaused = true;
@@ -208,7 +211,6 @@ export default class HealthSyncPlugin extends Plugin {
 			}
 		} catch (error) {
 			if (error instanceof Error && error.message === "login_required") {
-				// Notice was already shown in syncDate
 				this.settings.autoSyncPaused = true;
 				await this.saveSettings();
 			}
@@ -234,7 +236,6 @@ export default class HealthSyncPlugin extends Plugin {
 		try {
 			const success = await this.garminProvider.authenticate();
 			if (success) {
-				// Re-enable auto-sync on successful login
 				this.settings.autoSyncPaused = false;
 				await this.saveSession();
 				await this.saveSettings();
@@ -243,7 +244,7 @@ export default class HealthSyncPlugin extends Plugin {
 				new Notice(t("noticeLoginFailed", lang));
 			}
 		} catch (error) {
-			console.error("Health Sync: Browser login failed", error);
+			console.error("Garmin Health Sync: Browser login failed", error);
 			new Notice(t("noticeLoginFailed", lang));
 		}
 	}
@@ -262,7 +263,7 @@ export default class HealthSyncPlugin extends Plugin {
 
 	/** Detect path and format from Periodic Notes / Daily Notes if not manually configured */
 	private autoDetectDailyNotePath(): void {
-		if (this.settings.dailyNotePath) return; // Manually configured — do not overwrite
+		if (this.settings.dailyNotePath) return;
 
 		// Periodic Notes Plugin
 		const periodicNotes = (this.app as unknown as { plugins: { plugins: Record<string, { settings?: { daily?: { folder?: string; format?: string } } }> } })
@@ -272,7 +273,7 @@ export default class HealthSyncPlugin extends Plugin {
 			if (periodicNotes.settings.daily.format) {
 				this.settings.dailyNoteFormat = periodicNotes.settings.daily.format;
 			}
-			console.debug("Health Sync: Auto-detected daily note path from Periodic Notes:", this.settings.dailyNotePath);
+			console.debug("Garmin Health Sync: Auto-detected daily note path from Periodic Notes:", this.settings.dailyNotePath);
 			return;
 		}
 
@@ -284,7 +285,7 @@ export default class HealthSyncPlugin extends Plugin {
 			if (dailyNotes.instance.options.format) {
 				this.settings.dailyNoteFormat = dailyNotes.instance.options.format;
 			}
-			console.debug("Health Sync: Auto-detected daily note path from Daily Notes:", this.settings.dailyNotePath);
+			console.debug("Garmin Health Sync: Auto-detected daily note path from Daily Notes:", this.settings.dailyNotePath);
 			return;
 		}
 	}
@@ -312,8 +313,8 @@ export default class HealthSyncPlugin extends Plugin {
 	}
 
 	private async saveSession(): Promise<void> {
-		const session = this.garminProvider.getSession();
-		this.settings.garminSession = session ? JSON.stringify(session) : "";
+		const garminSession = this.garminProvider.getSession();
+		this.settings.garminSession = garminSession ? JSON.stringify(garminSession) : "";
 	}
 
 	private todayString(): string {
@@ -330,7 +331,6 @@ export default class HealthSyncPlugin extends Plugin {
 		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 	}
 
-	/** Checks whether a file is a daily note for one of the given dates */
 	private isDailyNote(file: TFile, dates: string[]): boolean {
 		for (const date of dates) {
 			if (this.matchesDailyNote(file, date)) return true;
@@ -338,18 +338,14 @@ export default class HealthSyncPlugin extends Plugin {
 		return false;
 	}
 
-	/** Extracts the date from a daily note, or null if not a daily note */
 	private dateFromDailyNote(file: TFile): string | null {
 		const format = this.settings.dailyNoteFormat || "YYYY-MM-DD";
 		const path = this.settings.dailyNotePath || "";
 
-		// Check expected path prefix (also allow subdirectories)
 		const dir = file.path.substring(0, file.path.lastIndexOf("/"));
 		if (path && dir !== path && !dir.startsWith(path + "/")) return null;
 		if (!path && dir !== "") return null;
 
-		// Match filename against format (YYYY-MM-DD → regex)
-		// First replace placeholders temporarily, then escape special chars, then insert groups
 		const escaped = format
 			.replace("YYYY", "\x01")
 			.replace("MM", "\x02")

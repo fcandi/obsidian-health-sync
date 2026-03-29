@@ -42,7 +42,7 @@ export class SyncManager {
 
 			const hasData = Object.keys(data.metrics).length > 0 || Object.keys(data.activities).length > 0;
 			if (!hasData) {
-				console.warn("Health Sync: No data returned for", date);
+				console.warn("Garmin Health Sync: No data returned for", date);
 				new Notice(t("noticeSyncNoData", settings.language));
 				return false;
 			}
@@ -64,7 +64,7 @@ export class SyncManager {
 				new Notice(t("noticeLoginRequired", settings.language));
 				throw error; // Caller pauses autoSync
 			}
-			console.error("Health Sync: Sync failed", error);
+			console.error("Garmin Health Sync: Sync failed", error);
 			new Notice(t("noticeSyncError", settings.language));
 			return false;
 		}
@@ -94,7 +94,7 @@ export class SyncManager {
 
 			// Calculate delay based on number of endpoints (50 req/min budget)
 			const batchDelay = this.provider.getRecommendedBatchDelay?.(enabledMetrics) ?? 2000;
-			console.debug(`Health Sync: Backfill ${dates.length} dates, delay ${batchDelay}ms`);
+			console.debug(`Garmin Health Sync: Backfill ${dates.length} dates, delay ${batchDelay}ms`);
 
 			for (const date of dates) {
 				try {
@@ -116,14 +116,14 @@ export class SyncManager {
 					// Rate limiting: dynamic based on endpoint count
 					await this.sleep(batchDelay);
 				} catch (error) {
-					console.warn(`Health Sync: Backfill failed for ${date}`, error);
+					console.warn(`Garmin Health Sync: Backfill failed for ${date}`, error);
 				}
 			}
 
 			new Notice(t("noticeBackfillDone", settings.language).replace("{count}", String(count)));
 			return count;
 		} catch (error) {
-			console.error("Health Sync: Backfill failed", error);
+			console.error("Garmin Health Sync: Backfill failed", error);
 			new Notice(t("noticeSyncError", settings.language));
 			return 0;
 		}

@@ -62,12 +62,12 @@ export class GarminProvider implements HealthProvider {
 		// Only call required endpoints
 		const requiredEndpoints = getRequiredEndpoints(enabledMetrics);
 		this.api.setRequiredEndpoints(requiredEndpoints);
-		console.debug("Health Sync: Endpoints:", requiredEndpoints.join(", "), `(${requiredEndpoints.length}/${enabledMetrics.length} metrics)`);
+		console.debug("Garmin Health Sync: Endpoints:", requiredEndpoints.join(", "), `(${requiredEndpoints.length}/${enabledMetrics.length} metrics)`);
 		const metrics: Record<string, number | string> = {};
 
 		const requests: Promise<void>[] = [];
 		const merge = (label: string, data: Record<string, number | string>): void => {
-			console.debug(`Health Sync: Mapper [${label}] →`, JSON.stringify(data));
+			console.debug(`Garmin Health Sync: Mapper [${label}] →`, JSON.stringify(data));
 			Object.assign(metrics, data);
 		};
 
@@ -78,7 +78,7 @@ export class GarminProvider implements HealthProvider {
 			requests.push(
 				this.api.fetchDailySummary(date)
 					.then(data => merge("dailySummary", mapDailySummary(data, enabled)))
-					.catch(e => console.warn("Health Sync: Daily summary fetch failed", e))
+					.catch(e => console.warn("Garmin Health Sync: Daily summary fetch failed", e))
 			);
 		}
 
@@ -89,7 +89,7 @@ export class GarminProvider implements HealthProvider {
 			requests.push(
 				this.api.fetchSleepData(date)
 					.then(data => merge("sleep", mapSleepData(data, enabled)))
-					.catch(e => console.warn("Health Sync: Sleep data fetch failed", e))
+					.catch(e => console.warn("Garmin Health Sync: Sleep data fetch failed", e))
 			);
 		}
 
@@ -98,7 +98,7 @@ export class GarminProvider implements HealthProvider {
 			requests.push(
 				this.api.fetchHrv(date)
 					.then(data => merge("hrv", mapHrvData(data, enabled)))
-					.catch(e => console.warn("Health Sync: HRV fetch failed", e))
+					.catch(e => console.warn("Garmin Health Sync: HRV fetch failed", e))
 			);
 		}
 
@@ -107,7 +107,7 @@ export class GarminProvider implements HealthProvider {
 			requests.push(
 				this.api.fetchBodyBattery(date)
 					.then(data => merge("bodyBattery", mapBodyBattery(data, enabled)))
-					.catch(e => console.warn("Health Sync: Body Battery fetch failed", e))
+					.catch(e => console.warn("Garmin Health Sync: Body Battery fetch failed", e))
 			);
 		}
 
@@ -116,7 +116,7 @@ export class GarminProvider implements HealthProvider {
 			requests.push(
 				this.api.fetchSpO2(date)
 					.then(data => merge("spo2", mapSpO2(data, enabled)))
-					.catch(e => console.warn("Health Sync: SpO2 fetch failed", e))
+					.catch(e => console.warn("Garmin Health Sync: SpO2 fetch failed", e))
 			);
 		}
 
@@ -125,7 +125,7 @@ export class GarminProvider implements HealthProvider {
 			requests.push(
 				this.api.fetchRespiration(date)
 					.then(data => merge("respiration", mapRespiration(data, enabled)))
-					.catch(e => console.warn("Health Sync: Respiration fetch failed", e))
+					.catch(e => console.warn("Garmin Health Sync: Respiration fetch failed", e))
 			);
 		}
 
@@ -134,7 +134,7 @@ export class GarminProvider implements HealthProvider {
 			requests.push(
 				this.api.fetchWeight(date)
 					.then(data => merge("weight", mapWeight(data, enabled)))
-					.catch(e => console.warn("Health Sync: Weight fetch failed", e))
+					.catch(e => console.warn("Garmin Health Sync: Weight fetch failed", e))
 			);
 		}
 
@@ -143,7 +143,7 @@ export class GarminProvider implements HealthProvider {
 			requests.push(
 				this.api.fetchTrainingReadiness(date)
 					.then(data => merge("trainingReadiness", mapTrainingReadiness(data, enabled)))
-					.catch(e => console.warn("Health Sync: Training Readiness fetch failed", e))
+					.catch(e => console.warn("Garmin Health Sync: Training Readiness fetch failed", e))
 			);
 		}
 
@@ -152,7 +152,7 @@ export class GarminProvider implements HealthProvider {
 			requests.push(
 				this.api.fetchTrainingStatus(date)
 					.then(data => merge("trainingStatus", mapTrainingStatus(data, enabled)))
-					.catch(e => console.warn("Health Sync: Training Status fetch failed", e))
+					.catch(e => console.warn("Garmin Health Sync: Training Status fetch failed", e))
 			);
 		}
 
@@ -168,7 +168,7 @@ export class GarminProvider implements HealthProvider {
 					trainings = result.trainings;
 					if (result.startLocation) startLocation = result.startLocation;
 				})
-				.catch(e => console.warn("Health Sync: Activities fetch failed", e))
+				.catch(e => console.warn("Garmin Health Sync: Activities fetch failed", e))
 		);
 
 		await Promise.all(requests);

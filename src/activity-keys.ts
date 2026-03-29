@@ -1,11 +1,8 @@
 /**
- * Normalization of provider-specific activity keys to canonical keys.
+ * Normalization of Garmin activity keys to canonical keys.
  *
  * Garmin typeKeys serve as the base standard. Only unnecessarily verbose keys
  * are normalized. Unknown keys are passed through as lowercase+underscore.
- *
- * Future providers (Fitbit, Oura, etc.) will map their own identifiers
- * to the same canonical keys.
  */
 
 /** Cleanup mapping: Garmin typeKey → canonical key */
@@ -123,6 +120,10 @@ const CATEGORY_MAP: Record<string, string> = {
 	meditation: "other",
 	breathwork: "other",
 	multi_sport: "other",
+	dancing: "other",
+
+	// Gym (additional)
+	martial_arts: "gym",
 };
 
 /**

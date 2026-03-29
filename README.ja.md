@@ -1,16 +1,10 @@
 [English](README.md) · [Deutsch](README.de.md) · [中文](README.zh.md) · **日本語** · [Español](README.es.md) · [Français](README.fr.md)
 
-# Obsidian Health Sync
+# Garmin Health Sync
 
-フィットネストラッカーから歩数、睡眠、心拍数、ストレス、アクティビティなどを自動的に Obsidian Daily Notes に同期します。Dataview で検索可能な frontmatter プロパティとして記録されます。
+Garmin Connect から歩数、睡眠、心拍数、ストレス、アクティビティなどを自動的に Obsidian Daily Notes に同期します。Dataview で検索可能な frontmatter プロパティとして記録されます。
 
-> **デスクトップ専用。** このプラグインは認証に Electron の BrowserWindow を使用するため、モバイルでは動作しません。
-
-## 対応プロバイダー
-
-- **Garmin Connect** — 通常の Garmin アカウントでログイン、API キー不要
-
-今後さらに多くのプロバイダー（Fitbit、Oura、Whoop）に対応予定です。
+> **デスクトップ専用。** このプラグインは Garmin Connect の認証に Electron の BrowserWindow を使用するため、モバイルでは動作しません。
 
 ## 機能
 
@@ -81,20 +75,20 @@ trainings:
 ### Community Plugins から（推奨）
 
 1. Obsidian 設定 → Community Plugins → ブラウズ を開く
-2. "Health Sync" を検索
+2. "Garmin Health Sync" を検索
 3. プラグインをインストールして有効化
 4. プラグイン設定で Garmin Connect にログイン
 
 ### 手動インストール
 
-1. [最新リリース](https://github.com/fcandi/obsidian-health-sync/releases)から `main.js` と `manifest.json` をダウンロード
-2. Vault 内に `.obsidian/plugins/obsidian-health-sync/` フォルダを作成
+1. [最新リリース](https://github.com/fcandi/garmin-health-sync/releases)から `main.js` と `manifest.json` をダウンロード
+2. Vault 内に `.obsidian/plugins/garmin-health-sync/` フォルダを作成
 3. 両方のファイルをそのフォルダにコピー
 4. 設定 → Community Plugins でプラグインを有効化
 
 ## アクティビティキーの正規化
 
-プロバイダー固有のアクティビティ名は正規キーに変換されます。Garmin の `typeKey` 値を基準とし、冗長なキーには若干の整理が行われています：
+Garmin の `typeKey` 値はより簡潔な正規キーに変換されます：
 
 | プロバイダーキー | 正規キー | カテゴリ |
 |---|---|---|
@@ -109,7 +103,7 @@ trainings:
 
 ### アクティビティカテゴリ
 
-各アクティビティにはプロバイダー間の互換性のためにカテゴリが割り当てられます：
+各アクティビティにはカテゴリが割り当てられます：
 
 | カテゴリ | 例 |
 |---|---|
@@ -124,8 +118,6 @@ trainings:
 | `racket` | tennis, badminton, squash, table_tennis, pickleball |
 | `team` | soccer, basketball, volleyball, rugby |
 | `other` | golf, meditation, multi_sport |
-
-今後のプロバイダー（Fitbit、Oura など）も同じ正規キーにマッピングされます。
 
 ## 開発
 

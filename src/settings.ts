@@ -5,7 +5,6 @@ import { t } from "./i18n/t";
 import type { TranslationKeys } from "./i18n/en";
 
 export interface HealthSyncSettings {
-	provider: string;
 	usePrefix: boolean;
 	dailyNotePath: string;
 	dailyNoteFormat: string;
@@ -22,7 +21,6 @@ export interface HealthSyncSettings {
 }
 
 export const DEFAULT_SETTINGS: HealthSyncSettings = {
-	provider: "garmin",
 	usePrefix: false,
 	dailyNotePath: "",
 	dailyNoteFormat: "YYYY-MM-DD",
@@ -69,43 +67,27 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 					this.display();
 				}));
 
-		// Provider
-		new Setting(containerEl)
-			.setName(t("settingsProvider", lang))
-			.setDesc(t("settingsProviderDesc", lang))
-			.addDropdown(drop => drop
-				// eslint-disable-next-line obsidianmd/ui/sentence-case
-				.addOption("garmin", "Garmin Connect")
-				.setValue(this.plugin.settings.provider)
-				.onChange(async (value) => {
-					this.plugin.settings.provider = value;
-					await this.plugin.saveSettings();
+		// Garmin Login
+		const isLoggedIn = this.plugin.isSessionValid();
+		const loginSetting = new Setting(containerEl)
+			.setName(t("settingsGarminLogin", lang))
+			.setDesc(isLoggedIn ? t("settingsGarminLoggedIn", lang) : t("settingsGarminLoggedOut", lang));
+
+		if (isLoggedIn) {
+			loginSetting.addButton(btn => btn
+				.setButtonText(t("settingsGarminLogout", lang))
+				.onClick(async () => {
+					await this.plugin.logout();
 					this.display();
 				}));
-
-		// Garmin Login
-		if (this.plugin.settings.provider === "garmin") {
-			const isLoggedIn = this.plugin.isSessionValid();
-			const loginSetting = new Setting(containerEl)
-				.setName(t("settingsGarminLogin", lang))
-				.setDesc(isLoggedIn ? t("settingsGarminLoggedIn", lang) : t("settingsGarminLoggedOut", lang));
-
-			if (isLoggedIn) {
-				loginSetting.addButton(btn => btn
-					.setButtonText(t("settingsGarminLogout", lang))
-					.onClick(async () => {
-						await this.plugin.logout();
-						this.display();
-					}));
-			} else {
-				loginSetting.addButton(btn => btn
-					.setButtonText(t("settingsGarminLogin", lang))
-					.setCta()
-					.onClick(async () => {
-						await this.plugin.loginViaBrowser();
-						this.display();
-					}));
-			}
+		} else {
+			loginSetting.addButton(btn => btn
+				.setButtonText(t("settingsGarminLogin", lang))
+				.setCta()
+				.onClick(async () => {
+					await this.plugin.loginViaBrowser();
+					this.display();
+				}));
 		}
 
 		// Auto-Sync

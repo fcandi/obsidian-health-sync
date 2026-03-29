@@ -131,7 +131,7 @@ async function updateFrontmatter(
 	} catch (e) {
 		// B: If YAML still fails, clean more aggressively and retry
 		if (e instanceof Error && e.message.includes("Map keys must be unique")) {
-			console.warn("Health Sync: Fixing corrupt frontmatter in", file.path);
+			console.warn("Garmin Health Sync: Fixing corrupt frontmatter in", file.path);
 			await deduplicateFrontmatter(app, file);
 			await app.fileManager.processFrontMatter(file, applyProperties);
 		} else {
@@ -187,7 +187,7 @@ async function deduplicateFrontmatter(app: App, file: TFile): Promise<void> {
 	const newContent = content.replace(/^---\r?\n[\s\S]*?\r?\n---/, `---\n${newLines.join("\n")}\n---`);
 	if (newContent !== content) {
 		await app.vault.modify(file, newContent);
-		console.debug("Health Sync: Deduplicated frontmatter in", file.path);
+		console.debug("Garmin Health Sync: Deduplicated frontmatter in", file.path);
 	}
 }
 

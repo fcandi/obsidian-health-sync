@@ -1,16 +1,10 @@
 [English](README.md) · [Deutsch](README.de.md) · [中文](README.zh.md) · [日本語](README.ja.md) · [Español](README.es.md) · **Français**
 
-# Obsidian Health Sync
+# Garmin Health Sync
 
-Synchronisez automatiquement les pas, le sommeil, la fréquence cardiaque, le stress, les activités et plus encore depuis votre tracker de fitness vers Obsidian Daily Notes — sous forme de propriétés frontmatter interrogeables avec Dataview.
+Synchronisez automatiquement les pas, le sommeil, la fréquence cardiaque, le stress, les activités et plus encore depuis Garmin Connect vers Obsidian Daily Notes — sous forme de propriétés frontmatter interrogeables avec Dataview.
 
-> **Bureau uniquement.** Ce plugin utilise le BrowserWindow d'Electron pour l'authentification et ne fonctionne pas sur mobile.
-
-## Fournisseurs pris en charge
-
-- **Garmin Connect** — connectez-vous avec vos identifiants Garmin habituels, aucune clé API requise
-
-D'autres fournisseurs (Fitbit, Oura, Whoop) sont prévus.
+> **Bureau uniquement.** Ce plugin utilise le BrowserWindow d'Electron pour l'authentification Garmin Connect et ne fonctionne pas sur mobile.
 
 ## Fonctionnalités
 
@@ -81,20 +75,20 @@ trainings:
 ### Depuis Community Plugins (recommandé)
 
 1. Ouvrez les Paramètres Obsidian → Community Plugins → Parcourir
-2. Recherchez "Health Sync"
+2. Recherchez "Garmin Health Sync"
 3. Installez et activez le plugin
 4. Connectez-vous à Garmin Connect dans les paramètres du plugin
 
 ### Manuelle
 
-1. Téléchargez `main.js` et `manifest.json` depuis la [dernière version](https://github.com/fcandi/obsidian-health-sync/releases)
-2. Créez un dossier `.obsidian/plugins/obsidian-health-sync/` dans votre vault
+1. Téléchargez `main.js` et `manifest.json` depuis la [dernière version](https://github.com/fcandi/garmin-health-sync/releases)
+2. Créez un dossier `.obsidian/plugins/garmin-health-sync/` dans votre vault
 3. Copiez les deux fichiers dans ce dossier
 4. Activez le plugin dans Paramètres → Community Plugins
 
 ## Normalisation des clés d'activité
 
-Les noms d'activité spécifiques à chaque fournisseur sont normalisés en clés canoniques. Les valeurs `typeKey` de Garmin servent de standard de base, avec un léger nettoyage pour les clés trop verbeuses :
+Les valeurs `typeKey` de Garmin sont normalisées en clés canoniques plus concises :
 
 | Clé du fournisseur | Clé canonique | Catégorie |
 |---|---|---|
@@ -109,7 +103,7 @@ Toutes les autres clés Garmin sont conservées telles quelles (par ex. `hiking`
 
 ### Catégories d'activité
 
-Chaque activité se voit attribuer une catégorie pour la compatibilité entre fournisseurs :
+Chaque activité se voit attribuer une catégorie :
 
 | Catégorie | Exemples |
 |---|---|
@@ -124,8 +118,6 @@ Chaque activité se voit attribuer une catégorie pour la compatibilité entre f
 | `racket` | tennis, badminton, squash, table_tennis, pickleball |
 | `team` | soccer, basketball, volleyball, rugby |
 | `other` | golf, meditation, multi_sport |
-
-Les futurs fournisseurs (Fitbit, Oura, etc.) mapperont leurs noms d'activité sur ces mêmes clés canoniques.
 
 ## Développement
 

@@ -1,16 +1,10 @@
 **English** · [Deutsch](README.de.md) · [中文](README.zh.md) · [日本語](README.ja.md) · [Español](README.es.md) · [Français](README.fr.md)
 
-# Obsidian Health Sync
+# Garmin Health Sync
 
-Automatically sync steps, sleep, heart rate, stress, activities and more from your fitness tracker into Obsidian Daily Notes — as frontmatter properties you can query with Dataview.
+Sync steps, sleep, heart rate, stress, activities and more from Garmin Connect into Obsidian Daily Notes — as frontmatter properties you can query with Dataview.
 
-> **Desktop only.** This plugin uses Electron's BrowserWindow for authentication and does not work on mobile.
-
-## Supported Providers
-
-- **Garmin Connect** — log in with your normal Garmin credentials, no API key needed
-
-More providers (Fitbit, Oura, Whoop) are planned.
+> **Desktop only.** This plugin uses Electron's BrowserWindow for Garmin Connect authentication and does not work on mobile.
 
 ## Features
 
@@ -81,20 +75,20 @@ trainings:
 ### From Community Plugins (recommended)
 
 1. Open Obsidian Settings → Community Plugins → Browse
-2. Search for "Health Sync"
+2. Search for "Garmin Health Sync"
 3. Install and enable the plugin
 4. Log in to Garmin Connect in the plugin settings
 
 ### Manual
 
-1. Download `main.js` and `manifest.json` from the [latest release](https://github.com/fcandi/obsidian-health-sync/releases)
-2. Create a folder `.obsidian/plugins/obsidian-health-sync/` in your vault
+1. Download `main.js` and `manifest.json` from the [latest release](https://github.com/fcandi/garmin-health-sync/releases)
+2. Create a folder `.obsidian/plugins/garmin-health-sync/` in your vault
 3. Copy both files into that folder
 4. Enable the plugin in Settings → Community Plugins
 
 ## Activity Key Normalization
 
-Provider-specific activity names are normalized to canonical keys. Garmin's `typeKey` values serve as the base standard, with a small cleanup for overly verbose keys:
+Garmin's `typeKey` values are normalized to cleaner canonical keys:
 
 | Provider Key | Canonical Key | Category |
 |---|---|---|
@@ -109,7 +103,7 @@ All other Garmin keys pass through unchanged (e.g. `hiking`, `running`, `cycling
 
 ### Activity Categories
 
-Each activity is assigned a category for cross-provider compatibility:
+Each activity is assigned a category:
 
 | Category | Examples |
 |---|---|
@@ -124,8 +118,6 @@ Each activity is assigned a category for cross-provider compatibility:
 | `racket` | tennis, badminton, squash, table_tennis, pickleball |
 | `team` | soccer, basketball, volleyball, rugby |
 | `other` | golf, meditation, multi_sport |
-
-Future providers (Fitbit, Oura, etc.) will map their activity names onto these same canonical keys.
 
 ## Development
 
