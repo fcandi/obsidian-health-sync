@@ -4,7 +4,6 @@ export const en = {
 	commandBackfill: "Backfill health data",
 
 	// Settings
-	settingsTitle: "Garmin Health Sync",
 	settingsGarminLogin: "Garmin Connect",
 	settingsGarminLoggedIn: "Connected — session active",
 	settingsGarminLoggedOut: "Not connected",
@@ -59,11 +58,11 @@ export const en = {
 	noticeSyncSuccess: "Health data synced successfully",
 	noticeSyncNoData: "No health data available for this date",
 	noticeSyncError: "Error syncing health data",
-	noticeLoginRequired: "Please connect your health provider first (Settings → Garmin Health Sync)",
+	noticeLoginRequired: "Please connect your health provider first (settings → Garmin Health Sync)",
 	noticeLoginSuccess: "Login successful!",
 	noticeLoginFailed: "Login failed or was cancelled",
 	noticeAlreadySynced: "Already synced today",
-	noticeSessionExpired: "Garmin Health Sync: Session expired — please re-login in settings",
+	noticeSessionExpired: "Garmin Health Sync: session expired — please re-login in settings",
 	noticeAutoSyncPaused: "Auto-sync paused due to auth error — please re-login in settings",
 	noticeAutoSyncDone: "Health data synced — {count} days updated",
 	noticeBackfillStart: "Starting backfill...",

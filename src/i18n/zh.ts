@@ -6,7 +6,6 @@ export const zh: Record<TranslationKeys, string> = {
 	commandBackfill: "回填健康数据",
 
 	// Settings
-	settingsTitle: "Garmin Health Sync",
 	settingsGarminLogin: "Garmin Connect",
 	settingsGarminLoggedIn: "已连接 — 会话有效",
 	settingsGarminLoggedOut: "未连接",

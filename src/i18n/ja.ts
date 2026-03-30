@@ -6,7 +6,6 @@ export const ja: Record<TranslationKeys, string> = {
 	commandBackfill: "ヘルスデータをバックフィル",
 
 	// Settings
-	settingsTitle: "Garmin Health Sync",
 	settingsGarminLogin: "Garmin Connect",
 	settingsGarminLoggedIn: "接続済み — セッション有効",
 	settingsGarminLoggedOut: "未接続",

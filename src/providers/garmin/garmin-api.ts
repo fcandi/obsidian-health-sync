@@ -119,17 +119,15 @@ export class GarminApi {
 
 	/** Login via Electron BrowserWindow */
 	async loginViaBrowser(): Promise<boolean> {
-		// eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unsafe-assignment -- Electron must be loaded via require() at runtime in Obsidian plugins
-		const electron = require("electron");
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- Accessing Electron's BrowserWindow from untyped require()
-		const { BrowserWindow } = electron.remote || electron;
+		// eslint-disable-next-line @typescript-eslint/no-require-imports -- Electron must be loaded via require() at runtime in Obsidian plugins
+		const electron = require("electron") as { remote?: { BrowserWindow: new (opts: object) => BrowserWindowType }; BrowserWindow: new (opts: object) => BrowserWindowType };
+		const { BrowserWindow } = electron.remote ?? electron;
 
 		const signinUrl = this.buildUrl(SSO_SIGNIN, SIGNIN_PARAMS);
 
 		return new Promise<boolean>((resolve) => {
 			// Start hidden if session is known (auto-login expected)
 			const hasSession = this.session !== null;
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call -- Constructing BrowserWindow from untyped Electron import
 		const authWindow: BrowserWindowType = new BrowserWindow({
 				width: 500,
 				height: 700,

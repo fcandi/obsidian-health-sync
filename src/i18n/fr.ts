@@ -6,7 +6,6 @@ export const fr: Record<TranslationKeys, string> = {
 	commandBackfill: "Remplir les données de santé",
 
 	// Settings
-	settingsTitle: "Garmin Health Sync",
 	settingsGarminLogin: "Garmin Connect",
 	settingsGarminLoggedIn: "Connecté — session active",
 	settingsGarminLoggedOut: "Non connecté",
