@@ -10,7 +10,6 @@ export interface HealthSyncSettings {
 	dailyNoteFormat: string;
 	dailyNoteTemplate: string;
 	enabledMetrics: Record<string, boolean>;
-	lastSyncDate: string; // Legacy — no longer written
 	lastSyncTimes: Record<string, number>; // Date → last sync timestamp (epoch ms)
 	garminSession: string;
 	language: string;
@@ -26,7 +25,6 @@ export const DEFAULT_SETTINGS: HealthSyncSettings = {
 	dailyNoteFormat: "YYYY-MM-DD",
 	dailyNoteTemplate: "",
 	enabledMetrics: getDefaultEnabledMetrics(),
-	lastSyncDate: "",
 	lastSyncTimes: {},
 	garminSession: "",
 	language: "en",
@@ -132,6 +130,19 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 					this.plugin.settings.dailyNoteFormat = value;
 					await this.plugin.saveSettings();
 				}));
+
+		new Setting(containerEl)
+			.setName(t("settingsDailyNoteTemplate", lang))
+			.setDesc(t("settingsDailyNoteTemplateDesc", lang))
+			.addTextArea(text => {
+				text.setPlaceholder("")
+					.setValue(this.plugin.settings.dailyNoteTemplate)
+					.onChange(async (value) => {
+						this.plugin.settings.dailyNoteTemplate = value;
+						await this.plugin.saveSettings();
+					});
+				text.inputEl.rows = 4;
+			});
 
 		// Prefix
 		new Setting(containerEl)

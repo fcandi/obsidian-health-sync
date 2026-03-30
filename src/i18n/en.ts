@@ -22,6 +22,8 @@ export const en = {
 	settingsWriteWorkoutLocationDesc: "Add place name of first GPS activity to frontmatter",
 	settingsWriteTrainings: "Machine-readable trainings",
 	settingsWriteTrainingsDesc: "Add structured 'trainings' field to frontmatter (for Dataview queries)",
+	settingsDailyNoteTemplate: "New Note Template",
+	settingsDailyNoteTemplateDesc: "Content added when creating a new Daily Note (leave empty for a blank note)",
 	settingsMetricsStandard: "Standard Metrics",
 	settingsMetricsExtendedDesc: "Additional metrics (click to expand)",
 	settingsLanguage: "Language",
@@ -63,6 +65,7 @@ export const en = {
 	noticeAlreadySynced: "Already synced today",
 	noticeSessionExpired: "Garmin Health Sync: Session expired — please re-login in settings",
 	noticeAutoSyncPaused: "Auto-sync paused due to auth error — please re-login in settings",
+	noticeAutoSyncDone: "Health data synced — {count} days updated",
 	noticeBackfillStart: "Starting backfill...",
 	noticeBackfillDone: "Backfill complete: {count} days updated",
 

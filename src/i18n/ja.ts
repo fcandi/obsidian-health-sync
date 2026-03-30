@@ -24,6 +24,8 @@ export const ja: Record<TranslationKeys, string> = {
 	settingsWriteWorkoutLocationDesc: "最初のGPSアクティビティの地名をフロントマターに追加",
 	settingsWriteTrainings: "機械可読トレーニングデータ",
 	settingsWriteTrainingsDesc: "フロントマターに構造化された 'trainings' フィールドを追加（Dataviewクエリ用）",
+	settingsDailyNoteTemplate: "新規ノートテンプレート",
+	settingsDailyNoteTemplateDesc: "新しいデイリーノート作成時に使用するコンテンツ（空白ノートにする場合は空のままにしてください）",
 	settingsMetricsStandard: "標準メトリクス",
 	settingsMetricsExtendedDesc: "追加メトリクス（クリックで展開）",
 	settingsLanguage: "言語",
@@ -65,6 +67,7 @@ export const ja: Record<TranslationKeys, string> = {
 	noticeAlreadySynced: "今日はすでに同期済みです",
 	noticeSessionExpired: "Garmin Health Sync：セッションが期限切れです——設定から再ログインしてください",
 	noticeAutoSyncPaused: "認証エラーにより自動同期を一時停止 — 設定から再ログインしてください",
+	noticeAutoSyncDone: "ヘルスデータを同期しました — {count} 日分を更新",
 	noticeBackfillStart: "バックフィルを開始...",
 	noticeBackfillDone: "バックフィル完了：{count} 日分を更新",
 

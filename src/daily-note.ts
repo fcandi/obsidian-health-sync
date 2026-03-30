@@ -184,7 +184,8 @@ async function deduplicateFrontmatter(app: App, file: TFile): Promise<void> {
 		}
 	}
 
-	const newContent = content.replace(/^---\r?\n[\s\S]*?\r?\n---/, `---\n${newLines.join("\n")}\n---`);
+	const lineEnding = content.includes("\r\n") ? "\r\n" : "\n";
+	const newContent = content.replace(/^---\r?\n[\s\S]*?\r?\n---/, `---${lineEnding}${newLines.join(lineEnding)}${lineEnding}---`);
 	if (newContent !== content) {
 		await app.vault.modify(file, newContent);
 		console.debug("Garmin Health Sync: Deduplicated frontmatter in", file.path);

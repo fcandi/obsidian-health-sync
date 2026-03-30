@@ -147,7 +147,7 @@ export default class HealthSyncPlugin extends Plugin {
 
 			for (let i = 0; i < datesToSync.length; i++) {
 				const date = datesToSync[i]!;
-				const success = await this.syncManager.syncDate(date, this.settings);
+				const success = await this.syncManager.syncDate(date, this.settings, true);
 				if (success) {
 					synced++;
 					const isFirstSync = !this.settings.lastSyncTimes[date];
@@ -181,6 +181,7 @@ export default class HealthSyncPlugin extends Plugin {
 			await this.saveSettings();
 
 			if (synced > 0) {
+				new Notice(t("noticeAutoSyncDone", this.settings.language).replace("{count}", String(synced)));
 				console.debug(`Garmin Health Sync: Auto-sync done — ${synced}/${datesToSync.length} days synced`);
 			}
 		} catch (error) {
@@ -357,7 +358,9 @@ export default class HealthSyncPlugin extends Plugin {
 		const match = file.basename.match(new RegExp(`^${escaped}$`));
 		if (!match?.groups) return null;
 
-		return `${match.groups.year}-${match.groups.month}-${match.groups.day}`;
+		const { year, month, day } = match.groups;
+		if (!year || !month || !day) return null;
+		return `${year}-${month}-${day}`;
 	}
 
 	private matchesDailyNote(file: TFile, date: string): boolean {

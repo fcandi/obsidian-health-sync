@@ -24,6 +24,8 @@ export const es: Record<TranslationKeys, string> = {
 	settingsWriteWorkoutLocationDesc: "Añadir nombre del lugar de la primera actividad GPS al frontmatter",
 	settingsWriteTrainings: "Entrenamientos legibles por máquina",
 	settingsWriteTrainingsDesc: "Añadir campo estructurado 'trainings' al frontmatter (para consultas Dataview)",
+	settingsDailyNoteTemplate: "Plantilla para nuevas notas",
+	settingsDailyNoteTemplateDesc: "Contenido al crear una nueva nota diaria (dejar vacío para una nota en blanco)",
 	settingsMetricsStandard: "Métricas estándar",
 	settingsMetricsExtendedDesc: "Métricas adicionales (clic para expandir)",
 	settingsLanguage: "Idioma",
@@ -65,6 +67,7 @@ export const es: Record<TranslationKeys, string> = {
 	noticeAlreadySynced: "Ya se sincronizó hoy",
 	noticeSessionExpired: "Garmin Health Sync: Sesión expirada — por favor, vuelve a iniciar sesión en ajustes",
 	noticeAutoSyncPaused: "Sincronización automática pausada por error de autenticación — inicia sesión de nuevo en ajustes",
+	noticeAutoSyncDone: "Datos de salud sincronizados — {count} días actualizados",
 	noticeBackfillStart: "Iniciando relleno de datos...",
 	noticeBackfillDone: "Relleno completado: {count} días actualizados",
 

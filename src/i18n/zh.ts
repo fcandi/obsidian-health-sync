@@ -24,6 +24,8 @@ export const zh: Record<TranslationKeys, string> = {
 	settingsWriteWorkoutLocationDesc: "在 frontmatter 中添加第一个 GPS 活动的地名",
 	settingsWriteTrainings: "机器可读训练数据",
 	settingsWriteTrainingsDesc: "在 frontmatter 中添加结构化的 'trainings' 字段（用于 Dataview 查询）",
+	settingsDailyNoteTemplate: "新建笔记模板",
+	settingsDailyNoteTemplateDesc: "创建新每日笔记时使用的内容（留空则创建空白笔记）",
 	settingsMetricsStandard: "标准指标",
 	settingsMetricsExtendedDesc: "更多指标（点击展开）",
 	settingsLanguage: "语言",
@@ -65,6 +67,7 @@ export const zh: Record<TranslationKeys, string> = {
 	noticeAlreadySynced: "今天已经同步过了",
 	noticeSessionExpired: "Garmin Health Sync：会话已过期——请在设置中重新登录",
 	noticeAutoSyncPaused: "自动同步因认证错误已暂停 — 请在设置中重新登录",
+	noticeAutoSyncDone: "健康数据同步完成 — 已更新 {count} 天",
 	noticeBackfillStart: "开始回填数据...",
 	noticeBackfillDone: "回填完成：已更新 {count} 天",
 

@@ -6,6 +6,8 @@ Sync steps, sleep, heart rate, stress, activities and more from Garmin Connect i
 
 > **Desktop only.** This plugin uses Electron's BrowserWindow for Garmin Connect authentication and does not work on mobile.
 
+> **Note:** This plugin uses Garmin Connect's internal web API through an Electron browser session — there is no official third-party API available.
+
 ## Features
 
 - **Auto-sync on startup** — checks the last 7 days and fills in any missing health data
@@ -18,6 +20,7 @@ Sync steps, sleep, heart rate, stress, activities and more from Garmin Connect i
 - **Subdirectory support** — finds existing Daily Notes in nested folders (e.g. `Journal/2024-07/`)
 - **Language auto-detection** — UI language is set from your Obsidian language (EN, DE, ZH, JA, ES, FR)
 - **Optional structured data** — machine-readable `trainings` field for advanced Dataview queries
+- **Property prefix** — optionally adds an `ohs_` prefix to all frontmatter properties to avoid naming conflicts with other plugins
 
 ## Frontmatter Output
 
@@ -31,7 +34,7 @@ sleep_score: 81
 sleep_duration: 7h 43min
 hrv: 39
 stress: 30
-workout_location: Bad Honnef, Deutschland
+workout_location: Bad Honnef, Germany
 ---
 ```
 
@@ -69,6 +72,12 @@ trainings:
     calories: 420
 ---
 ```
+
+## Requirements
+
+- **Obsidian Desktop** (Windows, macOS, Linux) — the plugin does not work on mobile
+- **Garmin account** with access to Garmin Connect
+- **Daily Notes** or **Periodic Notes** plugin enabled (or configure the path manually in settings)
 
 ## Installation
 
@@ -118,6 +127,15 @@ Each activity is assigned a category:
 | `racket` | tennis, badminton, squash, table_tennis, pickleball |
 | `team` | soccer, basketball, volleyball, rugby |
 | `other` | golf, meditation, multi_sport |
+
+## Data & Privacy
+
+This plugin makes network requests to two external services:
+
+- **Garmin Connect** — a browser window authenticates with Garmin Connect using your credentials. No password is stored by the plugin; only a session token (valid for 30 days) is saved in Obsidian's local plugin data.
+- **Nominatim (OpenStreetMap)** — if the "Workout location" feature is enabled, the GPS coordinates of your first activity are sent to `nominatim.openstreetmap.org` for reverse geocoding. You can disable this in settings under *Workout location*.
+
+No data is sent to any other server.
 
 ## Development
 

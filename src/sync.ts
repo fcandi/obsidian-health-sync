@@ -13,21 +13,22 @@ export class SyncManager {
 		this.provider = provider;
 	}
 
-	/** Sync for a specific date */
-	async syncDate(date: string, settings: HealthSyncSettings): Promise<boolean> {
+	/** Sync for a specific date.
+	 * @param quiet Suppress per-date notices (used during auto-sync batch). */
+	async syncDate(date: string, settings: HealthSyncSettings, quiet = false): Promise<boolean> {
 		if (!this.provider.isConfigured()) {
 			new Notice(t("noticeLoginRequired", settings.language));
 			return false;
 		}
 
-		new Notice(t("noticeSyncing", settings.language));
+		if (!quiet) new Notice(t("noticeSyncing", settings.language));
 
 		try {
 			// Authenticate if needed
 			if (!this.provider.isSessionValid()) {
 				const authenticated = await this.provider.authenticate();
 				if (!authenticated) {
-					new Notice(t("noticeSyncError", settings.language));
+					if (!quiet) new Notice(t("noticeSyncError", settings.language));
 					return false;
 				}
 			}
@@ -43,7 +44,7 @@ export class SyncManager {
 			const hasData = Object.keys(data.metrics).length > 0 || Object.keys(data.activities).length > 0;
 			if (!hasData) {
 				console.warn("Garmin Health Sync: No data returned for", date);
-				new Notice(t("noticeSyncNoData", settings.language));
+				if (!quiet) new Notice(t("noticeSyncNoData", settings.language));
 				return false;
 			}
 
@@ -57,15 +58,15 @@ export class SyncManager {
 				writeWorkoutLocation: settings.writeWorkoutLocation,
 			});
 
-			new Notice(t("noticeSyncSuccess", settings.language));
+			if (!quiet) new Notice(t("noticeSyncSuccess", settings.language));
 			return true;
 		} catch (error) {
 			if (error instanceof Error && error.message === "login_required") {
-				new Notice(t("noticeLoginRequired", settings.language));
+				new Notice(t("noticeLoginRequired", settings.language)); // Always show — user must act
 				throw error; // Caller pauses autoSync
 			}
 			console.error("Garmin Health Sync: Sync failed", error);
-			new Notice(t("noticeSyncError", settings.language));
+			if (!quiet) new Notice(t("noticeSyncError", settings.language));
 			return false;
 		}
 	}
@@ -96,7 +97,8 @@ export class SyncManager {
 			const batchDelay = this.provider.getRecommendedBatchDelay?.(enabledMetrics) ?? 2000;
 			console.debug(`Garmin Health Sync: Backfill ${dates.length} dates, delay ${batchDelay}ms`);
 
-			for (const date of dates) {
+			for (let i = 0; i < dates.length; i++) {
+				const date = dates[i]!;
 				try {
 					const data = await this.provider.fetchData(date, enabledMetrics);
 					const hasData = Object.keys(data.metrics).length > 0 || Object.keys(data.activities).length > 0;
@@ -113,8 +115,10 @@ export class SyncManager {
 						count++;
 					}
 
-					// Rate limiting: dynamic based on endpoint count
-					await this.sleep(batchDelay);
+					// Rate limiting: skip delay after the last date
+					if (i < dates.length - 1) {
+						await this.sleep(batchDelay);
+					}
 				} catch (error) {
 					console.warn(`Garmin Health Sync: Backfill failed for ${date}`, error);
 				}

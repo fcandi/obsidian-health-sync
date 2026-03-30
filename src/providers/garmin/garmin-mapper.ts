@@ -166,7 +166,7 @@ export function mapWeight(data: Record<string, unknown>, enabled: Set<string>): 
 	return result;
 }
 
-/** Mappt Training Readiness */
+/** Maps Training Readiness */
 export function mapTrainingReadiness(data: Record<string, unknown>, enabled: Set<string>): Record<string, number | string> {
 	const result: Record<string, number | string> = {};
 	if (!enabled.has("training_readiness")) return result;
@@ -177,7 +177,7 @@ export function mapTrainingReadiness(data: Record<string, unknown>, enabled: Set
 	return result;
 }
 
-/** Mappt Training Status */
+/** Maps Training Status */
 export function mapTrainingStatus(data: Record<string, unknown>, enabled: Set<string>): Record<string, number | string> {
 	const result: Record<string, number | string> = {};
 	if (!enabled.has("training_status")) return result;
@@ -228,10 +228,14 @@ export function mapActivities(activities: Record<string, unknown>[]): ActivityRe
 
 		// Record the first activity with GPS coordinates
 		if (!startLocation) {
-			const lat = Number(act["startLatitude"]);
-			const lon = Number(act["startLongitude"]);
-			if (lat && lon && !isNaN(lat) && !isNaN(lon)) {
-				startLocation = { lat, lon };
+			const latRaw = act["startLatitude"];
+			const lonRaw = act["startLongitude"];
+			if (latRaw != null && lonRaw != null) {
+				const lat = Number(latRaw);
+				const lon = Number(lonRaw);
+				if (!isNaN(lat) && !isNaN(lon)) {
+					startLocation = { lat, lon };
+				}
 			}
 		}
 	}
