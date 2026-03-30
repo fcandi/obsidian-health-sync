@@ -16,6 +16,7 @@ export default class HealthSyncPlugin extends Plugin {
 		this.autoDetectDailyNotePath();
 
 		this.garminProvider = new GarminProvider();
+		this.applyServerRegion();
 
 		// Restore session
 		if (this.settings.garminSession) {
@@ -260,6 +261,11 @@ export default class HealthSyncPlugin extends Plugin {
 	/** Checks whether a valid session exists */
 	isSessionValid(): boolean {
 		return this.garminProvider.isSessionValid();
+	}
+
+	/** Apply the configured server region to the API layer */
+	applyServerRegion(): void {
+		this.garminProvider.setRegion(this.settings.serverRegion);
 	}
 
 	/** Detect path and format from Periodic Notes / Daily Notes if not manually configured */

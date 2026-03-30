@@ -1,28 +1,42 @@
-const CONNECT_BASE = "https://connect.garmin.com";
-const APP_BASE = `${CONNECT_BASE}/app`;
-const MODERN_BASE = `${CONNECT_BASE}/modern`;
+import type { ServerRegion } from "../../settings";
 
-const SSO_SIGNIN = "https://sso.garmin.com/portal/sso/en-US/sign-in";
-const SIGNIN_PARAMS: Record<string, string> = {
-	clientId: "GarminConnect",
-	service: APP_BASE,
-};
+interface RegionUrls {
+	connectBase: string;
+	appBase: string;
+	modernBase: string;
+	ssoSignin: string;
+	apiBase: string;
+}
 
-const API_BASE = `${CONNECT_BASE}/gc-api`;
+function getRegionUrls(region: ServerRegion): RegionUrls {
+	const isChina = region === "china";
+	const connectBase = isChina ? "https://connect.garmin.cn" : "https://connect.garmin.com";
+	const ssoSignin = isChina
+		? "https://sso.garmin.cn/portal/sso/zh-CN/sign-in"
+		: "https://sso.garmin.com/portal/sso/en-US/sign-in";
+	return {
+		connectBase,
+		appBase: `${connectBase}/app`,
+		modernBase: `${connectBase}/modern`,
+		ssoSignin,
+		apiBase: `${connectBase}/gc-api`,
+	};
+}
 
-/** Direct API endpoint URLs — called via electron.net instead of BrowserWindow interceptor */
-const ENDPOINTS: Record<string, (displayName: string, date: string) => string> = {
-	dailySummary: (dn, date) => `${API_BASE}/usersummary-service/usersummary/daily/${dn}?calendarDate=${date}`,
-	sleep: (dn, date) => `${API_BASE}/wellness-service/wellness/dailySleepData/${dn}?date=${date}&nonSleepBufferMinutes=60`,
-	hrv: (_, date) => `${API_BASE}/hrv-service/hrv/${date}`,
-	bodyBattery: (_, date) => `${API_BASE}/wellness-service/wellness/bodyBattery/reports/daily?startDate=${date}&endDate=${date}`,
-	activities: (_, date) => `${API_BASE}/activitylist-service/activities/search/activities?startDate=${date}&endDate=${date}&limit=20`,
-	weight: (_, date) => `${API_BASE}/weight-service/weight/dateRange?startDate=${date}&endDate=${date}`,
-	spo2: (_, date) => `${API_BASE}/wellness-service/wellness/daily/spo2/${date}`,
-	respiration: (_, date) => `${API_BASE}/wellness-service/wellness/daily/respiration/${date}`,
-	trainingStatus: (_, date) => `${API_BASE}/metrics-service/metrics/maxmet/daily/${date}/${date}`,
-	trainingReadiness: (_, date) => `${API_BASE}/metrics-service/metrics/trainingreadiness/${date}`,
-};
+function getEndpoints(apiBase: string): Record<string, (displayName: string, date: string) => string> {
+	return {
+		dailySummary: (dn, date) => `${apiBase}/usersummary-service/usersummary/daily/${dn}?calendarDate=${date}`,
+		sleep: (dn, date) => `${apiBase}/wellness-service/wellness/dailySleepData/${dn}?date=${date}&nonSleepBufferMinutes=60`,
+		hrv: (_, date) => `${apiBase}/hrv-service/hrv/${date}`,
+		bodyBattery: (_, date) => `${apiBase}/wellness-service/wellness/bodyBattery/reports/daily?startDate=${date}&endDate=${date}`,
+		activities: (_, date) => `${apiBase}/activitylist-service/activities/search/activities?startDate=${date}&endDate=${date}&limit=20`,
+		weight: (_, date) => `${apiBase}/weight-service/weight/dateRange?startDate=${date}&endDate=${date}`,
+		spo2: (_, date) => `${apiBase}/wellness-service/wellness/daily/spo2/${date}`,
+		respiration: (_, date) => `${apiBase}/wellness-service/wellness/daily/respiration/${date}`,
+		trainingStatus: (_, date) => `${apiBase}/metrics-service/metrics/maxmet/daily/${date}/${date}`,
+		trainingReadiness: (_, date) => `${apiBase}/metrics-service/metrics/trainingreadiness/${date}`,
+	};
+}
 
 /** Which metrics require which endpoint */
 const ENDPOINT_METRIC_MAP: Record<string, string[]> = {
@@ -86,6 +100,13 @@ export class GarminApi {
 	private session: GarminSession | null = null;
 	private browserWindow: BrowserWindowType | null = null;
 	private requiredEndpoints: string[] | null = null;
+	private urls: RegionUrls = getRegionUrls("international");
+	private endpoints: Record<string, (displayName: string, date: string) => string> = getEndpoints(this.urls.apiBase);
+
+	setRegion(region: ServerRegion): void {
+		this.urls = getRegionUrls(region);
+		this.endpoints = getEndpoints(this.urls.apiBase);
+	}
 
 	setSession(session: GarminSession | null): void {
 		this.session = session;
@@ -123,7 +144,8 @@ export class GarminApi {
 		const electron = require("electron") as { remote?: { BrowserWindow: new (opts: object) => BrowserWindowType }; BrowserWindow: new (opts: object) => BrowserWindowType };
 		const { BrowserWindow } = electron.remote ?? electron;
 
-		const signinUrl = this.buildUrl(SSO_SIGNIN, SIGNIN_PARAMS);
+		const signinParams: Record<string, string> = { clientId: "GarminConnect", service: this.urls.appBase };
+		const signinUrl = this.buildUrl(this.urls.ssoSignin, signinParams);
 
 		return new Promise<boolean>((resolve) => {
 			// Start hidden if session is known (auto-login expected)
@@ -173,7 +195,7 @@ export class GarminApi {
 				const url = authWindow.webContents.getURL();
 				console.debug("Garmin Health Sync: Page loaded:", url);
 
-				const isConnectPage = url.startsWith(APP_BASE) || url.startsWith(MODERN_BASE);
+				const isConnectPage = url.startsWith(this.urls.appBase) || url.startsWith(this.urls.modernBase);
 				if (isConnectPage && !resolved) {
 					// Polling: wait until the app reveals the displayName in a URL
 					pollInterval = setInterval(() => {
@@ -358,7 +380,7 @@ export class GarminApi {
 	/** Call all required endpoints in parallel via fetch() in the BrowserWindow context */
 	private async fetchDirectInBrowser(date: string): Promise<Record<string, unknown>> {
 		const dn = this.session!.displayName;
-		const endpointKeys = this.requiredEndpoints ?? Object.keys(ENDPOINTS);
+		const endpointKeys = this.requiredEndpoints ?? Object.keys(this.endpoints);
 		if (endpointKeys.length === 0) return {};
 
 		// Check if we captured API headers (especially CSRF token) from the app
@@ -372,7 +394,7 @@ export class GarminApi {
 
 		// Execute all fetch calls with the captured headers
 		const fetchCalls = endpointKeys.map(key => {
-			const buildUrl = ENDPOINTS[key];
+			const buildUrl = this.endpoints[key];
 			if (!buildUrl) return `Promise.resolve({ key: ${JSON.stringify(key)}, status: 0, data: null })`;
 			const url = buildUrl(dn, date);
 			return `fetch(${JSON.stringify(url)}, { headers: Object.assign({}, window.__hs_apiHeaders, { "NK": "NT", "Accept": "application/json" }) })
@@ -432,7 +454,7 @@ export class GarminApi {
 		this.injectInterceptor(this.browserWindow!);
 
 		// Navigate to daily summary page for the requested date
-		const url = `${APP_BASE}/daily-summary/${date}`;
+		const url = `${this.urls.appBase}/daily-summary/${date}`;
 		console.debug("Garmin Health Sync: Navigating to", url);
 		await this.browserWindow!.loadURL(url).catch(() => {});
 

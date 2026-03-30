@@ -6,6 +6,10 @@ export const zh: Record<TranslationKeys, string> = {
 	commandBackfill: "回填健康数据",
 
 	// Settings
+	settingsServerRegion: "服务器区域",
+	settingsServerRegionDesc: "如果您的佳明账号注册在 garmin.cn，请选择中国",
+	regionInternational: "国际版 (garmin.com)",
+	regionChina: "中国版 (garmin.cn)",
 	settingsGarminLogin: "Garmin Connect",
 	settingsGarminLoggedIn: "已连接 — 会话有效",
 	settingsGarminLoggedOut: "未连接",

@@ -44,7 +44,7 @@ export default tseslint.config(
 					"Notion", "Evernote", "Roam Research", "Logseq", "Anki", "Reddit",
 					"VS Code", "Visual Studio Code", "IntelliJ IDEA", "WebStorm", "PyCharm",
 					// Project-specific
-					"Garmin", "Garmin Connect", "Garmin Health Sync", "Dataview",
+					"Garmin", "Garmin Connect", "Garmin Health Sync", "Dataview", "China",
 				],
 				acronyms: [
 					// Defaults
@@ -58,6 +58,7 @@ export default tseslint.config(
 					// Project-specific
 					"GPS", "REM", "HRV", "SpO2",
 				],
+				ignoreRegex: ["garmin\\.(com|cn)"],
 			}],
 		},
 	},

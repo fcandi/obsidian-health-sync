@@ -1,4 +1,5 @@
 import type { HealthData, HealthProvider } from "../provider";
+import type { ServerRegion } from "../../settings";
 import { GarminApi, GarminSession, getRequiredEndpoints, calculateBatchDelay } from "./garmin-api";
 import {
 	mapDailySummary,
@@ -18,6 +19,10 @@ export class GarminProvider implements HealthProvider {
 	readonly name = "Garmin Connect";
 
 	private api = new GarminApi();
+
+	setRegion(region: ServerRegion): void {
+		this.api.setRegion(region);
+	}
 
 	setSession(session: GarminSession | null): void {
 		this.api.setSession(session);

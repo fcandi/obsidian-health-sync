@@ -6,6 +6,10 @@ export const ja: Record<TranslationKeys, string> = {
 	commandBackfill: "ヘルスデータをバックフィル",
 
 	// Settings
+	settingsServerRegion: "サーバーリージョン",
+	settingsServerRegionDesc: "Garminアカウントがgarmin.cnに登録されている場合は中国を選択してください",
+	regionInternational: "国際版 (garmin.com)",
+	regionChina: "中国版 (garmin.cn)",
 	settingsGarminLogin: "Garmin Connect",
 	settingsGarminLoggedIn: "接続済み — セッション有効",
 	settingsGarminLoggedOut: "未接続",

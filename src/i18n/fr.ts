@@ -6,6 +6,10 @@ export const fr: Record<TranslationKeys, string> = {
 	commandBackfill: "Remplir les données de santé",
 
 	// Settings
+	settingsServerRegion: "Région du serveur",
+	settingsServerRegionDesc: "Choisissez Chine si votre compte Garmin est enregistré sur garmin.cn",
+	regionInternational: "International (garmin.com)",
+	regionChina: "Chine (garmin.cn)",
 	settingsGarminLogin: "Garmin Connect",
 	settingsGarminLoggedIn: "Connecté — session active",
 	settingsGarminLoggedOut: "Non connecté",

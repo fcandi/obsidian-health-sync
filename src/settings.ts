@@ -4,6 +4,8 @@ import { METRICS, getDefaultEnabledMetrics } from "./metrics";
 import { t } from "./i18n/t";
 import type { TranslationKeys } from "./i18n/en";
 
+export type ServerRegion = "international" | "china";
+
 export interface HealthSyncSettings {
 	usePrefix: boolean;
 	dailyNotePath: string;
@@ -17,6 +19,7 @@ export interface HealthSyncSettings {
 	autoSyncPaused: boolean; // Automatically paused on auth error
 	writeTrainings: boolean; // Machine-readable training data in frontmatter
 	writeWorkoutLocation: boolean; // Reverse-geocoded workout location in frontmatter
+	serverRegion: ServerRegion;
 }
 
 export const DEFAULT_SETTINGS: HealthSyncSettings = {
@@ -32,6 +35,7 @@ export const DEFAULT_SETTINGS: HealthSyncSettings = {
 	autoSyncPaused: false,
 	writeTrainings: false,
 	writeWorkoutLocation: true,
+	serverRegion: "international",
 };
 
 export class HealthSyncSettingTab extends PluginSettingTab {
@@ -62,6 +66,21 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					this.plugin.settings.language = value;
 					await this.plugin.saveSettings();
+					this.display();
+				}));
+
+		// Server Region
+		new Setting(containerEl)
+			.setName(t("settingsServerRegion", lang))
+			.setDesc(t("settingsServerRegionDesc", lang))
+			.addDropdown(drop => drop
+				.addOption("international", t("regionInternational", lang))
+				.addOption("china", t("regionChina", lang))
+				.setValue(this.plugin.settings.serverRegion)
+				.onChange(async (value) => {
+					this.plugin.settings.serverRegion = value as ServerRegion;
+					await this.plugin.saveSettings();
+					this.plugin.applyServerRegion();
 					this.display();
 				}));
 

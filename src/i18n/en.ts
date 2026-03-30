@@ -4,6 +4,10 @@ export const en = {
 	commandBackfill: "Backfill health data",
 
 	// Settings
+	settingsServerRegion: "Server region",
+	settingsServerRegionDesc: "Choose China if your Garmin account is registered at garmin.cn",
+	regionInternational: "International (garmin.com)",
+	regionChina: "China (garmin.cn)",
 	settingsGarminLogin: "Garmin Connect",
 	settingsGarminLoggedIn: "Connected — session active",
 	settingsGarminLoggedOut: "Not connected",
