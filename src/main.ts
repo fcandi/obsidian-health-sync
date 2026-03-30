@@ -45,7 +45,7 @@ export default class HealthSyncPlugin extends Plugin {
 					void (async () => {
 						const count = await this.syncManager.backfill(from, to, this.settings);
 						if (count > 0) {
-							await this.saveSession();
+							this.saveSession();
 							await this.saveSettings();
 						}
 					})();
@@ -177,7 +177,7 @@ export default class HealthSyncPlugin extends Plugin {
 				}
 			}
 
-			await this.saveSession();
+			this.saveSession();
 			await this.saveSettings();
 
 			if (synced > 0) {
@@ -207,7 +207,7 @@ export default class HealthSyncPlugin extends Plugin {
 			const success = await this.syncManager.syncDate(syncDate, this.settings);
 			if (success) {
 				this.settings.lastSyncTimes[syncDate] = Date.now();
-				await this.saveSession();
+				this.saveSession();
 				await this.saveSettings();
 			}
 		} catch (error) {
@@ -238,7 +238,7 @@ export default class HealthSyncPlugin extends Plugin {
 			const success = await this.garminProvider.authenticate();
 			if (success) {
 				this.settings.autoSyncPaused = false;
-				await this.saveSession();
+				this.saveSession();
 				await this.saveSettings();
 				new Notice(t("noticeLoginSuccess", lang));
 			} else {
@@ -313,7 +313,7 @@ export default class HealthSyncPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	private async saveSession(): Promise<void> {
+	private saveSession(): void {
 		const garminSession = this.garminProvider.getSession();
 		this.settings.garminSession = garminSession ? JSON.stringify(garminSession) : "";
 	}

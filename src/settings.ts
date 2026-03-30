@@ -111,8 +111,6 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 			.setName(t("settingsDailyNotePath", lang))
 			.setDesc(t("settingsDailyNotePathDesc", lang))
 			.addText(text => text
-				// eslint-disable-next-line obsidianmd/ui/sentence-case
-				.setPlaceholder("Journal/Daily")
 				.setValue(this.plugin.settings.dailyNotePath)
 				.onChange(async (value) => {
 					this.plugin.settings.dailyNotePath = value;
@@ -123,8 +121,6 @@ export class HealthSyncSettingTab extends PluginSettingTab {
 			.setName(t("settingsDailyNoteFormat", lang))
 			.setDesc(t("settingsDailyNoteFormatDesc", lang))
 			.addText(text => text
-				// eslint-disable-next-line obsidianmd/ui/sentence-case
-				.setPlaceholder("YYYY-MM-DD")
 				.setValue(this.plugin.settings.dailyNoteFormat)
 				.onChange(async (value) => {
 					this.plugin.settings.dailyNoteFormat = value;
