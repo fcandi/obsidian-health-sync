@@ -86,6 +86,25 @@ trainings:
 3. 将两个文件复制到该文件夹
 4. 在设置 → Community Plugins 中启用插件
 
+## 使用方法
+
+### 自动同步
+
+每次启动 Obsidian 时，插件会自动检查最近 7 天并补充缺失的健康数据，无需手动操作。
+
+### 手动同步
+
+打开一篇 Daily Note，然后通过命令面板（Cmd/Ctrl+P）运行 **Garmin Health Sync: Sync current note**。
+
+### 回填历史数据
+
+有多年的 Garmin 数据？你可以批量同步任意日期范围：
+
+1. 打开命令面板（Cmd/Ctrl+P）
+2. 搜索 **"回填健康数据"**（Backfill health data）
+3. 选择开始和结束日期
+4. 插件会自动获取该范围内的所有数据，并通过速率限制避免 API 节流
+
 ## 活动键名标准化
 
 Garmin 的 `typeKey` 值会被标准化为更简洁的规范键名：

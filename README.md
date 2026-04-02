@@ -95,6 +95,25 @@ trainings:
 3. Copy both files into that folder
 4. Enable the plugin in Settings → Community Plugins
 
+## Usage
+
+### Auto-sync
+
+On every Obsidian startup, the plugin checks the last 7 days and fills in any missing health data automatically. No action needed.
+
+### Manual sync
+
+Open a Daily Note and run **Garmin Health Sync: Sync current note** from the Command Palette (Cmd/Ctrl+P).
+
+### Backfill historical data
+
+Have years of Garmin data? You can bulk-sync any date range:
+
+1. Open the Command Palette (Cmd/Ctrl+P)
+2. Search for **"Backfill health data"**
+3. Pick a start and end date
+4. The plugin fetches all data for that range with rate-limiting to avoid API throttling
+
 ## Activity Key Normalization
 
 Garmin's `typeKey` values are normalized to cleaner canonical keys:
